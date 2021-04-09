@@ -8,19 +8,29 @@ class Test_PT_Panel(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
 
+    global percent_render_var
     def draw(self, context):
         layout = self.layout
 
-        row = layout.row()
-        row.operator('mocap.import_easymocap', text="Import EasyMOCAP")
-        row = layout.row()
-        row.operator('mocap.import_frankmocap', text="Import FrankMocap")
-        row = layout.row()
-        row.operator('mocap.import_vibe', text="Import VIBE")
-        layout.row().separator()
+        global percent_render_var
+        percentage = context.scene.percentage
+        percent_render_var = percentage.percentage
 
         row = layout.row()
-        row.operator('mocap.mediapipe_pose', text="Generate Mocap (MediaPipe)")
+        row.operator('mocap.import_easymocap', text="Import EasyMOCAP")
+
+        layout.row().separator()
+        
+        layout.prop(percentage, "percentage", text="SK Multiplier")
+        row = layout.row()
+        row.operator('mocap.import_frankmocap', text="SK Import FrankMocap")
+        row = layout.row()
+        row.operator('mocap.import_vibe', text="SK Import VIBE")
+   
+        row = layout.row()
+        row.operator('mocap.mediapipe_pose', text="SK Generate Mocap (MediaPipe)")
+        layout.row().separator()
+
         layout.row().separator()
 
         row = layout.row()
@@ -28,5 +38,22 @@ class Test_PT_Panel(bpy.types.Panel):
         row = layout.row()
         row.operator('install.joblib_package', text="Install Joblib (Vibe requirement)")
 
-        
 
+from bpy.props import (#StringProperty,
+                       BoolProperty,
+                      IntProperty,
+                      FloatProperty,
+#                       FloatVectorProperty,
+#                       EnumProperty,
+                    #    PointerProperty,
+                       )
+from bpy.types import (Panel,
+                       Operator,
+                       AddonPreferences,
+                       PropertyGroup,
+                       )
+
+
+
+class MySettingsPerc(PropertyGroup):
+    percentage: FloatProperty(name="miltiplier", description="Multiplier", default=0.9)

@@ -11,28 +11,52 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.4
-# - add mediapipe converter and motion creation seamsly inside blender
+# beta 0.5
+# - better skeleton for Vibe, Frankmocap and mediapipe
+# - skeleton size multiplier
 
 bl_info = {
     "name" : "MOCAP Pose Estimation Data Import",
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 4),
+    "version" : (0, 0, 5),
     "location" : "View3D",
     "warning" : "",
     "category" : "Generic"
 }
 import bpy
-# from . load_mocap import Import_Data_easymocap, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe
+
+from bpy.props import (#StringProperty,
+                    #    BoolProperty,
+                      IntProperty,
+                      FloatProperty,
+#                       FloatVectorProperty,
+#                       EnumProperty,
+                       PointerProperty,
+                       )
+
 from . load_mocap import Import_Data_easymocap, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation,Install_Mediapipe,Install_Joblib
-from . test_panel import Test_PT_Panel
+from . test_panel import Test_PT_Panel, MySettingsPerc
 
-# classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe)
-classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation,Install_Mediapipe,Install_Joblib)
+classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation,Install_Mediapipe,Install_Joblib,MySettingsPerc)
 
-register, unregister = bpy.utils.register_classes_factory(classes)
+# register, unregister = bpy.utils.register_classes_factory(classes)
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+    # bpy.types.Scene.my_tool = PointerProperty(type=MySettings)
+    bpy.types.Scene.percentage = PointerProperty(type=MySettingsPerc)
+
+def unregister():
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls) 
+
+
+
 
 if __name__ == "__main__":
     register()
+    # bpy.types.Scene.percentage = PointerProperty(type=MySettingsPerc)    
