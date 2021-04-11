@@ -75,7 +75,7 @@ class Import_Data_easymocap(Operator, ImportHelper):
 
         data = []
         for i in s_list:
-            with open(path+'\\'+i,'r') as f: 
+            with open(path+ os.sep +i,'r') as f: 
                 data.append(json.load(f))
                 #json.load(f)
                 
@@ -634,15 +634,15 @@ class Import_Data_frankmocap(Operator, ImportHelper):
 
 
         #exemplo
-        file = open(pkl_path+'\\'+s_list[0],'rb')
+        file = open(pkl_path+ os.sep +s_list[0],'rb')
 
         pic = pickle.load(file)
         file.close()
 
-        nppic = np.load(pkl_path+'\\'+s_list[0], allow_pickle=True)
+        nppic = np.load(pkl_path+ os.sep +s_list[0], allow_pickle=True)
 
         for item in range(len(s_list)-1):
-            nppic = np.load(pkl_path+'\\'+s_list[item], allow_pickle=True)
+            nppic = np.load(pkl_path+ os.sep +s_list[item], allow_pickle=True)
         #    nppic['pred_output_list'][0]['pred_body_joints_img'] #todos os limbs
             print("frame: ",item)
             for limb in range(len(nppic['pred_output_list'][0]['pred_body_joints_img'])):

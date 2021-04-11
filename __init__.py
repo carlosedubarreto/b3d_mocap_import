@@ -11,16 +11,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.5
-# - better skeleton for Vibe, Frankmocap and mediapipe
-# - skeleton size multiplier
+# beta 0.51
+# - fix for os slash, tip by k30n1
+
 
 bl_info = {
     "name" : "MOCAP Pose Estimation Data Import",
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 5),
+    "version" : (0, 0, 51),
     "location" : "View3D",
     "warning" : "",
     "category" : "Generic"
