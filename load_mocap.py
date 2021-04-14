@@ -5,8 +5,10 @@ from bpy import context
 from bpy_extras.io_utils import ImportHelper
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, EnumProperty
+from . helper import helper_functions
+import math
 
-# global percent_render_var
+
 class OT_TestOpenFilebrowser(Operator, ImportHelper):
 
     bl_idname = "test.open_filebrowser"
@@ -26,9 +28,8 @@ class OT_TestOpenFilebrowser(Operator, ImportHelper):
         return {'FINISHED'}
 
 
-
 class Import_Data_easymocap(Operator, ImportHelper):
-    global percent_render_var
+
     bl_idname = "mocap.import_easymocap"
     bl_label = "Import data"
     bl_description = "Import EasyMOCAP"
@@ -518,9 +519,7 @@ class Import_Data_easymocap(Operator, ImportHelper):
         return{'FINISHED'}
 
 
-
 class Import_Data_frankmocap(Operator, ImportHelper):
-    global percent_render_var
     bl_idname = "mocap.import_frankmocap"
     bl_label = "Import data from Frankmocap"
     bl_description = "Import FrankMocap"
@@ -539,7 +538,6 @@ class Import_Data_frankmocap(Operator, ImportHelper):
 
     def execute(self,context):
 
-
         #"""
         #Frnakmocap
         #==========================
@@ -552,10 +550,8 @@ class Import_Data_frankmocap(Operator, ImportHelper):
         from bpy import context
         import joblib
 
-        scene = context.scene
-        percentage = scene.percentage
-        percent_render_var = percentage.percentage
-        multiplier = percent_render_var
+        multiplier = context.scene.sk_value_prop.sk_value
+        raw_bool = context.scene.sk_value_prop.sk_raw_bool
 
         def middle_point(p1,p2,p_middle):
             bpy.ops.object.select_all(action='DESELECT')
@@ -800,6 +796,15 @@ class Import_Data_frankmocap(Operator, ImportHelper):
         #Armature_obj = bpy.context.scene.objects[armature]
         Armature_obj = obs[len(obs)-1]
         view_layer.objects.active = Armature_obj
+
+
+        #converting to euler rotation
+        order = 'XYZ'
+        context = bpy.context
+        rig_object = context.active_object
+        for pb in rig_object.pose.bones:
+            pb.rotation_mode = order
+
 
 
         bpy.ops.object.editmode_toggle()
@@ -1170,6 +1175,33 @@ class Import_Data_frankmocap(Operator, ImportHelper):
         bpy.data.collections.remove(collection)
 
 
+        sk_value_prop = context.scene.sk_value_prop
+        if raw_bool == True:
+            print('raw_bool True - ',raw_bool)
+
+            x_original, y_original, z_original = helper_functions.get_rotations()
+            sk_value_prop.sk_root_rot_x = math.degrees(x_original)
+            sk_value_prop.sk_root_rot_y = math.degrees(y_original)
+            sk_value_prop.sk_root_rot_z = math.degrees(z_original)
+
+            #in this case both original and actual is the same, because there was no alteration on the angle
+            x_actual_deg = math.degrees(x_original)
+            y_actual_deg = math.degrees(y_original)
+            z_actual_deg = math.degrees(z_original)
+
+            sk_value_prop.sk_root_actual_rot_x = x_actual_deg
+            sk_value_prop.sk_root_actual_rot_y = y_actual_deg
+            sk_value_prop.sk_root_actual_rot_z = z_actual_deg
+        else:
+            print('raw_bool False - ',raw_bool)
+            x_deg, y_deg, z_deg = helper_functions.anim_to_origin()
+            #take the information of the rotation to the panel
+            print('result x: ',x_deg)
+            print('result y: ',y_deg)
+            print('result z: ',z_deg)
+            sk_value_prop.sk_root_rot_x = x_deg
+            sk_value_prop.sk_root_rot_y = y_deg
+            sk_value_prop.sk_root_rot_z = z_deg
 
 
         #"""
@@ -1177,10 +1209,7 @@ class Import_Data_frankmocap(Operator, ImportHelper):
         #"""
 
 
-
-
 class Import_Data_vibe(Operator, ImportHelper):
-    global percent_render_var
     bl_idname = "mocap.import_vibe"
     bl_label = "Import data from Vibe (needs joblib install)"
     bl_description = "Import Vibe"
@@ -1213,10 +1242,8 @@ class Import_Data_vibe(Operator, ImportHelper):
         from bpy import context
         import joblib
 
-        scene = context.scene
-        percentage = scene.percentage
-        percent_render_var = percentage.percentage
-        multiplier = percent_render_var
+        multiplier = context.scene.sk_value_prop.sk_value
+        raw_bool = context.scene.sk_value_prop.sk_raw_bool
 
         def middle_point(p1,p2,p_middle):
             bpy.ops.object.select_all(action='DESELECT')
@@ -1451,6 +1478,13 @@ class Import_Data_vibe(Operator, ImportHelper):
         #Armature_obj = bpy.context.scene.objects[armature]
         Armature_obj = obs[len(obs)-1]
         view_layer.objects.active = Armature_obj
+
+        #converting to euler rotation
+        order = 'XYZ'
+        context = bpy.context
+        rig_object = context.active_object
+        for pb in rig_object.pose.bones:
+            pb.rotation_mode = order
 
 
         bpy.ops.object.editmode_toggle()
@@ -1798,14 +1832,43 @@ class Import_Data_vibe(Operator, ImportHelper):
         for obj in collection.objects:
             bpy.data.objects.remove(obj, do_unlink=True)
         bpy.data.collections.remove(collection)
+
+        sk_value_prop = context.scene.sk_value_prop
+        if raw_bool == True:
+            print('raw_bool True - ',raw_bool)
+
+            x_original, y_original, z_original = helper_functions.get_rotations()
+            sk_value_prop.sk_root_rot_x = math.degrees(x_original)
+            sk_value_prop.sk_root_rot_y = math.degrees(y_original)
+            sk_value_prop.sk_root_rot_z = math.degrees(z_original)
+
+            #in this case both original and actual is the same, because there was no alteration on the angle
+            x_actual_deg = math.degrees(x_original)
+            y_actual_deg = math.degrees(y_original)
+            z_actual_deg = math.degrees(z_original)
+
+            sk_value_prop.sk_root_actual_rot_x = x_actual_deg
+            sk_value_prop.sk_root_actual_rot_y = y_actual_deg
+            sk_value_prop.sk_root_actual_rot_z = z_actual_deg
+        else:
+            print('raw_bool False - ',raw_bool)
+            x_deg, y_deg, z_deg = helper_functions.anim_to_origin()
+            #take the information of the rotation to the panel
+            print('result x: ',x_deg)
+            print('result y: ',y_deg)
+            print('result z: ',z_deg)
+            sk_value_prop.sk_root_rot_x = x_deg
+            sk_value_prop.sk_root_rot_y = y_deg
+            sk_value_prop.sk_root_rot_z = z_deg
+
+
+        
         
 
         return{'FINISHED'}
 
-
         
 class Mediapipe_Pose_estimation(Operator, ImportHelper):
-    # global percent_render_var
     bl_idname = "mocap.mediapipe_pose"
     bl_label = "Generate Pose using MediaPipe"
     bl_description = "Generate Mocap data with MediaPipe"
@@ -1829,10 +1892,8 @@ class Mediapipe_Pose_estimation(Operator, ImportHelper):
         from mathutils import Vector
         import math
 
-        scene = context.scene
-        percentage = scene.percentage
-        percent_render_var = percentage.percentage
-        multiplier = percent_render_var
+        multiplier = context.scene.sk_value_prop.sk_value
+        raw_bool = context.scene.sk_value_prop.sk_raw_bool
 
         def middle_point(p1,p2,p_middle):
             bpy.ops.object.select_all(action='DESELECT')
@@ -2105,6 +2166,15 @@ class Mediapipe_Pose_estimation(Operator, ImportHelper):
         #Armature_obj = bpy.context.scene.objects[armature]
         Armature_obj = obs[len(obs)-1]
         view_layer.objects.active = Armature_obj
+
+
+        #converting to euler rotation
+        order = 'XYZ'
+        context = bpy.context
+        rig_object = context.active_object
+        for pb in rig_object.pose.bones:
+            pb.rotation_mode = order
+
 
 
         bpy.ops.object.editmode_toggle()
@@ -2455,6 +2525,35 @@ class Mediapipe_Pose_estimation(Operator, ImportHelper):
             bpy.data.objects.remove(obj, do_unlink=True)
         bpy.data.collections.remove(collection)
 
+        sk_value_prop = context.scene.sk_value_prop
+        if raw_bool == True:
+            print('raw_bool True - ',raw_bool)
+
+            x_original, y_original, z_original = helper_functions.get_rotations()
+            sk_value_prop.sk_root_rot_x = math.degrees(x_original)
+            sk_value_prop.sk_root_rot_y = math.degrees(y_original)
+            sk_value_prop.sk_root_rot_z = math.degrees(z_original)
+
+            #in this case both original and actual is the same, because there was no alteration on the angle
+            x_actual_deg = math.degrees(x_original)
+            y_actual_deg = math.degrees(y_original)
+            z_actual_deg = math.degrees(z_original)
+
+            sk_value_prop.sk_root_actual_rot_x = x_actual_deg
+            sk_value_prop.sk_root_actual_rot_y = y_actual_deg
+            sk_value_prop.sk_root_actual_rot_z = z_actual_deg
+        else:
+            print('raw_bool False - ',raw_bool)
+            x_deg, y_deg, z_deg = helper_functions.anim_to_origin()
+            #take the information of the rotation to the panel
+            print('result x: ',x_deg)
+            print('result y: ',y_deg)
+            print('result z: ',z_deg)
+            sk_value_prop.sk_root_rot_x = x_deg
+            sk_value_prop.sk_root_rot_y = y_deg
+            sk_value_prop.sk_root_rot_z = z_deg
+
+
 
         return{'FINISHED'}
 
@@ -2482,6 +2581,7 @@ class Install_Mediapipe(bpy.types.Operator):
 
         return{'FINISHED'}
 
+
 class Install_Joblib(bpy.types.Operator):
     bl_idname = "install.joblib_package"
     bl_label = "Install python JobLib Package"
@@ -2503,4 +2603,69 @@ class Install_Joblib(bpy.types.Operator):
         # install required packages
         subprocess.call([python_exe, "-m", "pip", "install", "joblib"])
 
+        return{'FINISHED'}
+
+class Convert_axis(Operator):
+    bl_idname = "mocap.convert_axis"
+    bl_label = "Convert animation axis"
+    bl_description = "Convert Axis"
+
+    def execute(self,context):
+        
+        skvalue = context.scene.sk_value_prop
+
+        print('from: ',skvalue.sk_from_axis,' ','to: ',skvalue.sk_to_axis)
+        print('from simplified: ',skvalue.sk_from_axis[-1:],' ','to: ',skvalue.sk_to_axis[-1:])
+
+        helper_functions.rotate_orientation(skvalue.sk_from_axis[-1:],skvalue.sk_to_axis[-1:])
+        
+        #send actual rotations
+        x_actual_deg, y_actual_deg, z_actual_deg = helper_functions.get_rotations()
+        skvalue.sk_root_actual_rot_x = math.degrees(x_actual_deg)
+        skvalue.sk_root_actual_rot_y = math.degrees(y_actual_deg)
+        skvalue.sk_root_actual_rot_z = math.degrees(z_actual_deg)
+        return{'FINISHED'}
+
+class Reset_location(Operator):
+    bl_idname = "mocap.reset_location"
+    bl_label = "Move animation to origin"
+    bl_description = "Center Location"
+    
+    def execute(sel,context):
+        helper_functions.reset_loc()
+        return{'FINISHED'}
+
+class Reset_rotation(Operator):
+    bl_idname = "mocap.reset_rotation"
+    bl_label = "Reset rotation, to the Rest rotatio position"
+    bl_description = "Reset Rotation"
+    
+    def execute(sel,context):
+        helper_functions.reset_rot()
+
+        sk_value_prop = context.scene.sk_value_prop
+        x_actual_deg, y_actual_deg, z_actual_deg = helper_functions.get_rotations()
+        sk_value_prop.sk_root_actual_rot_x = math.degrees(x_actual_deg)
+        sk_value_prop.sk_root_actual_rot_y = math.degrees(y_actual_deg)
+        sk_value_prop.sk_root_actual_rot_z = math.degrees(z_actual_deg)
+        return{'FINISHED'}
+
+class Foot_high(Operator):
+    bl_idname = "mocap.foot_high"
+    bl_label = "Move the animation so the feet touch the floor"
+    bl_description = "Move the feet to touch the floor"
+    
+    def execute(sel,context):
+        helper_functions.foot_high()
+        return{'FINISHED'}
+
+class Compensate_Rotation(Operator):
+    bl_idname = "mocap.compensate_rotation"
+    bl_label = "compensate rotation"
+    bl_description = "Compensate rotatio acording to value inserted"
+    
+    def execute(sel,context):
+        skvalue = context.scene.sk_value_prop
+
+        helper_functions.compensate_rot(skvalue.sk_rot_compens_x,skvalue.sk_rot_compens_y,skvalue.sk_rot_compens_z)
         return{'FINISHED'}

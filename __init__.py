@@ -11,8 +11,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.51
-# - fix for os slash, tip by k30n1
+# beta 0.6
+# - tools for making the mocap data be centered and in the right orientation
 
 
 bl_info = {
@@ -36,10 +36,12 @@ from bpy.props import (#StringProperty,
                        PointerProperty,
                        )
 
-from . load_mocap import Import_Data_easymocap, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation,Install_Mediapipe,Install_Joblib
-from . test_panel import Test_PT_Panel, MySettingsPerc
+from . load_mocap import Import_Data_easymocap, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation, \
+                        Install_Mediapipe,Install_Joblib,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation
+from . test_panel import Test_PT_Panel, MySettings, Install_PT_Panel, Modify_PT_Panel
 
-classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation,Install_Mediapipe,Install_Joblib,MySettingsPerc)
+classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation,
+            Install_Mediapipe,Install_Joblib,MySettings,Modify_PT_Panel,Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation)
 
 # register, unregister = bpy.utils.register_classes_factory(classes)
 def register():
@@ -47,12 +49,13 @@ def register():
     for cls in classes:
         register_class(cls)
     # bpy.types.Scene.my_tool = PointerProperty(type=MySettings)
-    bpy.types.Scene.percentage = PointerProperty(type=MySettingsPerc)
+    bpy.types.Scene.sk_value_prop = PointerProperty(type=MySettings)
 
 def unregister():
     from bpy.utils import unregister_class
     for cls in reversed(classes):
         unregister_class(cls) 
+    del bpy.types.Scene.sk_value_prop
 
 
 
