@@ -11,8 +11,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.6
-# - tools for making the mocap data be centered and in the right orientation
+# beta 0.61
+# - option to choose person to import from vibe mocap
+# - apply new skeleton to easymocap
+# - impórt SMPL result from easymocap (need file from https://smpl.is.tue.mpg.de/downloads "SMPL for Maya" PS.: need to register to download the file)
 
 
 bl_info = {
@@ -20,7 +22,7 @@ bl_info = {
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 51),
+    "version" : (0, 0, 61),
     "location" : "View3D",
     "warning" : "",
     "category" : "Generic"
@@ -37,11 +39,11 @@ from bpy.props import (#StringProperty,
                        )
 
 from . load_mocap import Import_Data_easymocap, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation, \
-                        Install_Mediapipe,Install_Joblib,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation
-from . test_panel import Test_PT_Panel, MySettings, Install_PT_Panel, Modify_PT_Panel
+                        Install_Mediapipe,Install_Joblib,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation,Smooth_Bone, Reload_sk_easymocap, Import_SMPL_easymocap,Path_SMPL_FBX_File
+from . test_panel import Test_PT_Panel, MySettings, Install_PT_Panel, Modify_PT_Panel,Debug_PT_Panel
 
 classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation,
-            Install_Mediapipe,Install_Joblib,MySettings,Modify_PT_Panel,Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation)
+            Install_Mediapipe,Install_Joblib,MySettings,Modify_PT_Panel,Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation,Smooth_Bone,Debug_PT_Panel, Reload_sk_easymocap, Import_SMPL_easymocap, Path_SMPL_FBX_File)
 
 # register, unregister = bpy.utils.register_classes_factory(classes)
 def register():
