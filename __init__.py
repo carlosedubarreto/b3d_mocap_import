@@ -13,6 +13,8 @@
 
 # Alpha 0.1
 # - Realtime with mediapipe
+# Alpha 0.11
+# - Better installation of Mediapipe
 
 
 bl_info = {
@@ -20,7 +22,7 @@ bl_info = {
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 1),
+    "version" : (0, 0, 11),
     "location" : "View3D",
     "warning" : "",
     "category" : "Generic"

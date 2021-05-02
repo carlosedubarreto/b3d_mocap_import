@@ -2571,13 +2571,15 @@ class Install_Mediapipe(bpy.types.Operator):
         
         # path to python.exe
         python_exe = os.path.join(sys.prefix, 'bin', 'python.exe')
+        python_pip = os.path.join(sys.prefix, 'lib', 'site-packages', 'pip')
         
+
         # upgrade pip
-        subprocess.call([python_exe, "-m", "ensurepip"])
-        subprocess.call([python_exe, "-m", "pip", "install", "--upgrade", "pip"])
+        # subprocess.call([python_exe, "-m", "ensurepip"])
+        subprocess.call([python_exe, python_pip, "install", "--upgrade", "pip"])
         
         # install required packages
-        subprocess.call([python_exe, "-m", "pip", "install", "mediapipe"])
+        subprocess.call([python_exe, python_pip, "install", "mediapipe"])
 
         return{'FINISHED'}
 
@@ -2671,7 +2673,6 @@ class Compensate_Rotation(Operator):
         return{'FINISHED'}
 
 
-
 class Smooth_Bone(Operator):
     bl_idname = "mocap.smooth_bones"
     bl_label = "Smooth Bones"
@@ -2685,126 +2686,6 @@ class Smooth_Bone(Operator):
 
         helper_functions.smooth_curves(o)
         return{'FINISHED'}
-
-
-
-# class ModalTimerOperator_Mediapipe(bpy.types.Operator):
-#     """Operator which runs its self from a timer"""
-#     bl_idname = "wm.modal_timer_operator"
-#     bl_label = "Modal Timer Operator"
-
-#     _timer = None
-    
-#     def middle_point(p1,p2,p_middle):
-#         bpy.ops.object.select_all(action='DESELECT')
-#         bpy.data.objects[p1].select_set(True)
-#         bpy.data.objects[p2].select_set(True)
-#         bpy.context.view_layer.objects.active = bpy.data.objects[p2]
-#         obs = bpy.context.selected_objects
-#         n = len(obs)
-#     #    print('n: ',n)
-#         assert(n)
-#         #scene.cursor.location = sum([o.matrix_world.translation for o in obs], Vector()) / n
-#         bpy.data.objects[p_middle].location = sum([o.matrix_world.translation for o in obs], Vector()) / n
-
-#     def modal(self, context, event):
-#         if event.type in {'RIGHTMOUSE', 'ESC'}:
-#             self.cancel(context)
-#             return {'CANCELLED'}
-
-#         if event.type == 'TIMER':
-#             # change theme color, silly!
-# #            color = context.preferences.themes[0].view_3d.space.gradients.high_gradient
-# #            color.s = 1.0
-# #            color.h += 0.01
-            
-#             #############
-#             #begin of connection code
-#             full_msg = b''
-#             nem_msg = True
-#             while True:
-#                 msg = s.recv(512) #1024 is the buffer
-#                 if nem_msg:
-#                     # print(f"new message length: {msg[:HEADERSIZE]}")
-#                     msglen = int(msg[:HEADERSIZE])
-#                     nem_msg = False
-
-#                 full_msg += msg
-
-#                 if len(full_msg)-HEADERSIZE == msglen:
-
-#                     d = json.loads(full_msg[HEADERSIZE:].decode('utf-8'))
-
-#                     nem_msg = True
-#                     full_msg = b''
-#                     break
-
-# #            print('fim: ',d)
-#             if d != 'nada':
-# #                print('len d[0]: ', len(d[0]))
-#                 print('bone: ',d[1][0],' x: ',d[1][1],' y: ',d[1][2],' z: ',d[1][3])
-#                 for i in range(len(d)):
-#                     x_pose = d[i][1]
-#                     y_pose = d[i][2]
-#                     z_pose = d[i][3]
-#                     bpy.data.objects["Point."+str(1000+i)[1:]].location[0]=x_pose
-#                     bpy.data.objects["Point."+str(1000+i)[1:]].location[1]=y_pose
-#                     bpy.data.objects["Point."+str(1000+i)[1:]].location[2]=z_pose
-#                     if i == 10:
-# #                        middle_point('Point.009','Point.010','Point.033')
-#                         bpy.ops.object.select_all(action='DESELECT')
-#                         bpy.data.objects['Point.009'].select_set(True)
-#                         bpy.data.objects['Point.010'].select_set(True)
-#                         bpy.context.view_layer.objects.active = bpy.data.objects['Point.010']
-#                         obs = bpy.context.selected_objects
-#                         n = len(obs)
-#                         assert(n)
-#                         bpy.data.objects['Point.033'].location = sum([o.matrix_world.translation for o in obs], Vector()) / n
-# #                        bpy.data.objects["Point."+str(1000+33)[1:]].keyframe_insert(data_path="location", frame=idx)
-#                     if i == 12:
-#     #                   middle_point('Point.011','Point.012','Point.034')
-#                         bpy.ops.object.select_all(action='DESELECT')
-#                         bpy.data.objects['Point.011'].select_set(True)
-#                         bpy.data.objects['Point.012'].select_set(True)
-#                         bpy.context.view_layer.objects.active = bpy.data.objects['Point.012']
-#                         obs = bpy.context.selected_objects
-#                         n = len(obs)
-#                         assert(n)
-#                         bpy.data.objects['Point.034'].location = sum([o.matrix_world.translation for o in obs], Vector()) / n
-#     #                        bpy.data.objects["Point."+str(1000+34)[1:]].keyframe_insert(data_path="location", frame=idx)
-#                     if i == 24:
-# #                        middle_point('Point.023','Point.024','Point.035')
-#                         bpy.ops.object.select_all(action='DESELECT')
-#                         bpy.data.objects['Point.023'].select_set(True)
-#                         bpy.data.objects['Point.024'].select_set(True)
-#                         bpy.context.view_layer.objects.active = bpy.data.objects['Point.024']
-#                         obs = bpy.context.selected_objects
-#                         n = len(obs)
-#                         assert(n)
-#                         bpy.data.objects['Point.035'].location = sum([o.matrix_world.translation for o in obs], Vector()) / n
-#                         bpy.data.objects["Point."+str(1000+35)[1:]].keyframe_insert(data_path="location", frame=idx)
-#             #    bpy.data.objects["Point."+str(1000+i)[1:]].keyframe_insert(data_path="location", frame=idx)
-
-            
-#             #end connection code
-            
-            
-
-#         return {'PASS_THROUGH'}
-
-    # def execute(self, context):
-    #     wm = context.window_manager
-    #     self._timer = wm.event_timer_add(0.2, window=context.window)
-    #     wm.modal_handler_add(self)
-    #     print('MODAL!!!!!!!!!!!!!!!')
-    #     return {'RUNNING_MODAL'}
-
-    # def cancel(self, context):
-    #     wm = context.window_manager
-    #     wm.event_timer_remove(self._timer)
-
-
-
 
 
 ########################################
@@ -3409,9 +3290,6 @@ class Mediapipe_Pose_Prepare_Skeleton_RT(Operator):
         sk_value_prop = context.scene.sk_value_prop
         
         return{'FINISHED'}
-
-
-
 
 
 # class Mediapipe_Pose_estimation_RT(Operator, ImportHelper):
