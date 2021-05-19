@@ -11,18 +11,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.61
-# - option to choose person to import from vibe mocap
-# - apply new skeleton to easymocap
-# - impórt SMPL result from easymocap (need file from https://smpl.is.tue.mpg.de/downloads "SMPL for Maya" PS.: need to register to download the file)
-
+# beta 0.62
+# - choose SMPL model Male or female (instead of only the male one)
+# - option to choose SMPLX model (with hands and face animation)
+# - the SMPLX model with fingers should be generated using this addon https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon and exported the Male character to FBX
+# - at the moment easymocap doesnt export hand and finger movement, so it need to apply these changes https://github.com/zju3dv/EasyMocap/issues/25#issuecomment-842266080
+# when generating the data from easymocap, the parameters like this "python apps/demo/mv1p.py 0_input/20210505_guitar --out 1_output/20210505_guitar --vis_det --vis_repro --undis --sub_vis 1 2 --body bodyhandface --model smplx --gender male --vis_smpl"
 
 bl_info = {
     "name" : "MOCAP Pose Estimation Data Import",
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 61),
+    "version" : (0, 0, 62),
     "location" : "View3D",
     "warning" : "",
     "category" : "Generic"

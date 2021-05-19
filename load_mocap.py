@@ -71,6 +71,7 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
         import numpy as np
         from mathutils import Matrix, Vector, Quaternion, Euler
         import json
+        import pickle
 
         part_match = {'root': 'root', 'bone_00': 'Pelvis', 'bone_01': 'L_Hip', 'bone_02': 'R_Hip',
                     'bone_03': 'Spine1', 'bone_04': 'L_Knee', 'bone_05': 'R_Knee', 'bone_06': 'Spine2',
@@ -78,6 +79,65 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
                     'bone_11': 'R_Foot', 'bone_12': 'Neck', 'bone_13': 'L_Collar', 'bone_14': 'R_Collar',
                     'bone_15': 'Head', 'bone_16': 'L_Shoulder', 'bone_17': 'R_Shoulder', 'bone_18': 'L_Elbow',
                     'bone_19': 'R_Elbow', 'bone_20': 'L_Wrist', 'bone_21': 'R_Wrist', 'bone_22': 'L_Hand', 'bone_23': 'R_Hand'}
+
+        # part_match_custom = {'root': 'root', 'bone_00': 'pelvis', 'bone_01': 'left_hip', 'bone_02': 'right_hip',
+        #     'bone_03': 'spine1', 'bone_04': 'left_knee', 'bone_05': 'right_knee', 'bone_06': 'spine2',
+        #     'bone_07': 'left_ankle', 'bone_08': 'right_ankle', 'bone_09': 'spine3', 'bone_10': 'left_foot',
+        #     'bone_11': 'right_foot', 'bone_12': 'neck', 'bone_13': 'left_collar', 'bone_14': 'right_collar',
+        #     'bone_15': 'head', 'bone_16': 'left_shoulder', 'bone_17': 'right_shoulder', 'bone_18': 'jaw',
+        #     'bone_19': 'left_eye_smplhf', 'bone_20': 'right_eye_smplhf', 'bone_21': 'left_elbow', 'bone_22': 'right_elbow', 
+        #     'bone_23': 'left_wrist', 'bone_24': 'right_wrist',
+        #     # 'bone_25': 'left_hand','bone_26': 'right_hand'
+        #     'bone_25': 'left_index1','bone_26': 'left_middle1','bone_27': 'left_pinky1','bone_28': 'left_ring1','bone_29': 'left_thumb1',
+        #     'bone_30': 'right_index1','bone_31': 'right_middle1','bone_32': 'right_pinky1','bone_33': 'right_ring1','bone_34': 'right_thumb1',
+        #     'bone_35': 'left_index2','bone_36': 'left_middle2','bone_37': 'left_pinky2','bone_38': 'left_ring2','bone_39': 'left_thumb2',
+        #     'bone_40': 'right_index2','bone_41': 'right_middle2','bone_42': 'right_pinky2','bone_43': 'right_ring2','bone_44': 'right_thumb2',
+        #     'bone_45': 'left_index3','bone_46': 'left_middle3','bone_47': 'left_pinky3','bone_48': 'left_ring3','bone_49': 'left_thumb3',
+        #     'bone_50': 'right_index3','bone_51': 'right_middle3','bone_52': 'right_pinky3','bone_53': 'right_ring3','bone_54': 'right_thumb3'
+        #     }
+
+
+        part_match_custom = {'root': 'root', 'bone_00':  'pelvis', 'bone_01':  'left_hip', 'bone_02':  'right_hip', 
+							'bone_03':  'spine1', 'bone_04':  'left_knee', 'bone_05':  'right_knee', 'bone_06':  'spine2', 
+							'bone_07':  'left_ankle', 'bone_08':  'right_ankle', 'bone_09':  'spine3', 'bone_10':  'left_foot', 
+							'bone_11':  'right_foot', 'bone_12':  'neck', 'bone_13':  'left_collar', 'bone_14':  'right_collar', 
+							'bone_15':  'head', 'bone_16':  'left_shoulder', 'bone_17':  'right_shoulder', 'bone_18':  'left_elbow', 
+							'bone_19':  'right_elbow', 'bone_20':  'left_wrist', 'bone_21':  'right_wrist', 'bone_22':  'jaw', 
+							'bone_23':  'left_eye_smplhf', 'bone_24':  'right_eye_smplhf', 
+							'bone_25':  'left_index1', 'bone_26':  'left_index2', 'bone_27':  'left_index3', 
+							'bone_28':  'left_middle1', 'bone_29':  'left_middle2', 'bone_30':  'left_middle3', 
+							'bone_31':  'left_pinky1', 'bone_32':  'left_pinky2', 'bone_33':  'left_pinky3', 
+							'bone_34':  'left_ring1', 'bone_35':  'left_ring2', 'bone_36':  'left_ring3', 
+							'bone_37':  'left_thumb1', 'bone_38':  'left_thumb2', 'bone_39':  'left_thumb3', 
+							'bone_40':  'right_index1', 'bone_41':  'right_index2', 'bone_42':  'right_index3', 
+							'bone_43':  'right_middle1', 'bone_44':  'right_middle2', 'bone_45':  'right_middle3', 
+							'bone_46':  'right_pinky1', 'bone_47':  'right_pinky2', 'bone_48':  'right_pinky3', 
+							'bone_49':  'right_ring1', 'bone_50':  'right_ring2', 'bone_51':  'right_ring3', 
+							'bone_52':  'right_thumb1', 'bone_53':  'right_thumb2', 'bone_54':  'right_thumb3'
+							}
+
+        part_match_custom_less = {'root': 'root', 'bone_00':  'pelvis', 'bone_01':  'left_hip', 'bone_02':  'right_hip', 
+							'bone_03':  'spine1', 'bone_04':  'left_knee', 'bone_05':  'right_knee', 'bone_06':  'spine2', 
+							'bone_07':  'left_ankle', 'bone_08':  'right_ankle', 'bone_09':  'spine3', 'bone_10':  'left_foot', 
+							'bone_11':  'right_foot', 'bone_12':  'neck', 'bone_13':  'left_collar', 'bone_14':  'right_collar', 
+							'bone_15':  'head', 'bone_16':  'left_shoulder', 'bone_17':  'right_shoulder', 'bone_18':  'left_elbow', 
+							'bone_19':  'right_elbow', 'bone_20':  'left_wrist', 'bone_21':  'right_wrist', 'bone_22':  'jaw', 
+							'bone_23':  'left_eye_smplhf', 'bone_24':  'right_eye_smplhf', 
+							'bone_25':  'left_index1', 
+							'bone_26':  'left_middle1',
+							'bone_27':  'left_pinky1',
+							'bone_28':  'left_ring1',
+							'bone_29':  'left_thumb1',
+							'bone_30':  'right_index1',
+							'bone_31':  'right_middle1', 
+							'bone_32':  'right_pinky1', 
+							'bone_33':  'right_ring1', 
+							'bone_34':  'right_thumb1'
+							}
+
+        gender = 'n'
+
+        
 
         def deg2rad(angle):
             return -np.pi * (angle + 90) / 180.
@@ -97,7 +157,11 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             return(cost*np.eye(3) + (1-cost)*r.dot(r.T) + np.sin(theta)*mat)
 
         def rodrigues2bshapes(pose):
-            rod_rots = np.asarray(pose).reshape(24, 3)
+            # if pose.shape[0]==24:
+            #     rod_rots = np.asarray(pose).reshape(24, 3)
+            # else:
+            #     rod_rots = np.asarray(pose).reshape(87, 3)
+            rod_rots = np.asarray(pose).reshape(int(pose.shape[0]/3), 3)
             mat_rots = [Rodrigues(rod_rot) for rod_rot in rod_rots]
             bshapes = np.concatenate([(mat_rot - np.eye(3)).ravel()
                                     for mat_rot in mat_rots[1:]])
@@ -109,12 +173,25 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             mrots, bsh = rodrigues2bshapes(pose)
 
             # set the location of the first bone to the translation parameter
-            arm_ob.pose.bones[obname+'_Pelvis'].location = trans
-            arm_ob.pose.bones[obname+'_root'].location = trans
-            arm_ob.pose.bones[obname +'_root'].keyframe_insert('location', frame=frame)
+            if obname[:1] == 'n':
+                part_bones  = part_match_custom
+                # part_bones  = part_match_custom_less
+                arm_ob.pose.bones['pelvis'].location = trans
+                arm_ob.pose.bones['root'].location = trans
+                arm_ob.pose.bones['root'].keyframe_insert('location', frame=frame)
+            else:
+                part_bones  = part_match
+                arm_ob.pose.bones[obname+'_Pelvis'].location = trans
+                arm_ob.pose.bones[obname+'_root'].location = trans
+                arm_ob.pose.bones[obname +'_root'].keyframe_insert('location', frame=frame)
             # set the pose of each bone to the quaternion specified by pose
             for ibone, mrot in enumerate(mrots):
-                bone = arm_ob.pose.bones[obname+'_'+part_match['bone_%02d' % ibone]]
+                # bone = arm_ob.pose.bones[obname+'_'+part_match['bone_%02d' % ibone]]
+                # bone = arm_ob.pose.bones[obname+'_'+part_bones['bone_%02d' % ibone]]
+                if obname[:1] == 'n':
+                    bone = arm_ob.pose.bones[part_bones['bone_%02d' % ibone]]
+                else:
+                    bone = arm_ob.pose.bones[obname+'_'+part_bones['bone_%02d' % ibone]]
                 bone.rotation_quaternion = Matrix(mrot).to_quaternion()
                 if frame is not None:
                     bone.keyframe_insert('rotation_quaternion', frame=frame)
@@ -134,26 +211,36 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
                     ob.data.shape_keys.key_blocks['Shape%03d' % ibshape].keyframe_insert(
                         'value', index=-1, frame=frame)
         import os
-        import json
+        
 
         def read_json(path):
             with open(path) as f:
                 data = json.load(f)
             return data
+
+        def read_pkl(path_pkl):
+            with open(path_pkl, 'rb') as pk:
+                data_pkl = pickle.load(pk)
+            return data_pkl
             
         def read_smpl(outname):
             assert os.path.exists(outname), outname
+            filename, file_extension = os.path.splitext(outname)
             datas = read_json(outname)
+            data_pkl = read_pkl(filename+'.pkl')
+            datas[0]['pose_new']=data_pkl[0].tolist()
             outputs = []
             for data in datas:
-                for key in ['Rh', 'Th', 'poses', 'shapes']:
+                # for key in ['Rh', 'Th', 'poses', 'shapes']:
+                for key in ['Rh', 'Th', 'pose_new', 'shapes']:
                     data[key] = np.array(data[key])
                 outputs.append(data)
             return outputs
 
         def merge_params(param_list, share_shape=True):
             output = {}
-            for key in ['poses', 'shapes', 'Rh', 'Th', 'expression']:
+            # for key in ['poses', 'shapes', 'Rh', 'Th', 'expression']:
+            for key in ['pose_new', 'shapes', 'Rh', 'Th', 'expression']:
                 if key in param_list[0].keys():
                     output[key] = np.vstack([v[key] for v in param_list])
             if share_shape:
@@ -163,7 +250,8 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
         def load_motions(path):
             from glob import glob
             filenames = sorted(glob(join(path, '*.json')))
-            print(filenames)
+            filenames_pkl = sorted(glob(join(path, '*.pkl')))
+            print('file_json:',filenames,' file_pkl: ',filenames_pkl)
             motions = {}
             # for filename in filenames[300:900]:
             for filename in filenames:
@@ -177,7 +265,8 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             # BUG: not strictly equal: (Rh, Th, poses) != (Th, (Rh, poses))
             for pid in motions.keys():
                 motions[pid] = merge_params(motions[pid])
-                motions[pid]['poses'][:, :3] = motions[pid]['Rh']
+                # motions[pid]['poses'][:, :3] = motions[pid]['Rh']
+                motions[pid]['pose_new'][:, :3] = motions[pid]['Rh']
             return motions
             
         def load_smpl_params(datapath):
@@ -188,10 +277,30 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             # load fbx model
             # path_fbx=r'D:\MOCAP\EasyMocap_v2\data\smplx\SMPL_maya'
             path_fbx = context.scene.sk_value_prop.sk_smpl_path
-            bpy.ops.import_scene.fbx(filepath=join(path_fbx, 'basicModel_%s_lbs_10_207_0_v1.0.2.fbx' % 'm'), axis_forward='-Y', axis_up='-Z', global_scale=100)
+            # bpy.ops.import_scene.fbx(filepath=join(path_fbx, 'basicModel_%s_lbs_10_207_0_v1.0.2.fbx' % 'm'), axis_forward='-Y', axis_up='-Z', global_scale=100)
+            # bpy.ops.import_scene.fbx(filepath=path_fbx, axis_forward='-Y', axis_up='-Z', global_scale=100, automatic_bone_orientation=True) #se usar orient, o codigo nao funciona direto.
+            bpy.ops.import_scene.fbx(filepath=path_fbx, axis_forward='-Y', axis_up='-Z', global_scale=100)
             print('success load')
-            obname = '%s_avg' % 'm'
-            ob = bpy.data.objects[obname]
+            
+
+            if os.path.basename(path_fbx) == 'basicModel_m_lbs_10_207_0_v1.0.2.fbx' :
+                obj_gender = 'm'
+            elif os.path.basename(path_fbx) == 'basicModel_f_lbs_10_207_0_v1.0.2.fbx' :
+                obj_gender = 'f'
+            else:
+                obj_gender = 'n'
+
+            if obj_gender == 'n':
+                obname = 'SMPLX-mesh-male'
+                ob = bpy.data.objects[obname]
+                arm_obj = 'SMPLX-male'
+                obname = 'n'
+                
+            else:
+                obname = '%s_avg' % obj_gender
+                ob = bpy.data.objects[obname]
+                arm_obj = 'Armature'
+
             ob.data.use_auto_smooth = False  # autosmooth creates artifacts
 
             bpy.ops.object.select_all(action='DESELECT')
@@ -200,7 +309,7 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             cam_ob = ''
 
             ob.data.shape_keys.animation_data_clear()
-            arm_ob = bpy.data.objects['Armature']
+            arm_ob = bpy.data.objects[arm_obj]
             arm_ob.animation_data_clear()
             
             return(ob, obname, arm_ob, cam_ob)
@@ -211,7 +320,8 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
         path_smpl = self.filepath
         scene = bpy.data.scenes['Scene']
 
-        ob, obname, arm_ob, cam_ob = init_scene(scene, params, 'm')
+        obj_gender = 'n'
+        ob, obname, arm_ob, cam_ob= init_scene(scene, params, obj_gender)
         #setState0()
         #ob.select = True
         #bpy.context.scene.objects.active = ob
@@ -249,14 +359,61 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             arm_ob.animation_data_clear()
         #    cam_ob.animation_data_clear()
             # load smpl params:
-            nFrames = data['poses'].shape[0]
+            # nFrames = data['poses'].shape[0]
+            nFrames = data['pose_new'].shape[0]
             for frame in range(nFrames):
-                print(frame)
+                # print(frame)
                 scene.frame_set(frame)
                 # apply
                 trans = data['Th'][frame]
                 shape = data['shapes'][0]
-                pose = data['poses'][frame]
+                # pose_temp = data['poses'][frame]
+                # pose_temp = data['pose_new'][frame]
+                pose = data['pose_new'][frame]
+
+                # l_index1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[67:68]])
+                # l_middle1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[68:69]])
+                # l_pinky1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[69:70]])
+                # l_ring1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[70:71]])
+                # l_thumb1 = np.concatenate([np.array([0]),pose_temp[71:72],np.array([0])])
+
+                # r_index1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[72:73]])
+                # r_middle1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[73:74]])
+                # r_pinky1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[74:75]])
+                # r_ring1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[75:76]])
+                # r_thumb1 = np.concatenate([np.array([0]),pose_temp[76:77],np.array([0])])
+
+                # l_hand = np.concatenate([l_index1,l_middle1,l_pinky1,l_ring1,l_thumb1])
+                # r_hand = np.concatenate([r_index1,r_middle1,r_pinky1,r_ring1,r_thumb1])
+                """
+                l_index = np.concatenate([np.array([0]),np.array([0]),pose_temp[66:67],np.array([0]),np.array([0]),pose_temp[66:67],np.array([0]),np.array([0]),pose_temp[66:67]])
+                l_middle = np.concatenate([np.array([0]),np.array([0]),pose_temp[67:68],np.array([0]),np.array([0]),pose_temp[67:68],np.array([0]),np.array([0]),pose_temp[67:68]])
+                l_pinky = np.concatenate([np.array([0]),np.array([0]),pose_temp[68:69],np.array([0]),np.array([0]),pose_temp[68:69],np.array([0]),np.array([0]),pose_temp[68:69]])
+                l_ring = np.concatenate([np.array([0]),np.array([0]),pose_temp[69:70],np.array([0]),np.array([0]),pose_temp[69:70],np.array([0]),np.array([0]),pose_temp[69:70]])
+                l_thumb = np.concatenate([np.array([0]),pose_temp[70:71],np.array([0]),np.array([0]),pose_temp[70:71],np.array([0]),np.array([0]),pose_temp[71:72],np.array([0])])
+
+                r_index = np.concatenate([np.array([0]),np.array([0]),pose_temp[72:73],np.array([0]),np.array([0]),pose_temp[72:73],np.array([0]),np.array([0]),pose_temp[72:73]])
+                r_middle = np.concatenate([np.array([0]),np.array([0]),pose_temp[73:74],np.array([0]),np.array([0]),pose_temp[73:74],np.array([0]),np.array([0]),pose_temp[73:74]])
+                r_pinky = np.concatenate([np.array([0]),np.array([0]),pose_temp[74:75],np.array([0]),np.array([0]),pose_temp[74:75],np.array([0]),np.array([0]),pose_temp[74:75]])
+                r_ring = np.concatenate([np.array([0]),np.array([0]),pose_temp[75:76],np.array([0]),np.array([0]),pose_temp[75:76],np.array([0]),np.array([0]),pose_temp[75:76]])
+                r_thumb = np.concatenate([np.array([0]),pose_temp[76:77],np.array([0]),np.array([0]),pose_temp[76:77],np.array([0]),np.array([0]),pose_temp[77:77],np.array([0])])
+
+                l_hand = np.concatenate([l_index,l_middle,l_pinky,l_ring,l_thumb])
+                r_hand = np.concatenate([r_index,r_middle,r_pinky,r_ring,r_thumb])
+                """
+
+                #reorganizing to a better fit to the bones
+                # pose = np.concatenate([pose_temp[0:66],pose_temp[78:],pose_temp[66:78]]) 
+
+                #somente corpo e cabeca
+                # pose = np.concatenate([pose_temp[0:66],pose_temp[78:]]) 
+
+                #tentaiva de incluir tratamento para que rodrigues tb cuidasse da mao
+                # pose = np.concatenate([pose_temp[0:66],pose_temp[78:],l_hand,r_hand]) 
+
+                # print('shape: ',data['poses'][frame].shape[0], '- frame:',frame)
+                print('shape: ',data['pose_new'][frame].shape[0], '- frame:',frame)
+
                 apply_trans_pose_shape(Vector(trans), pose, shape, ob,
                                     arm_ob, obname, scene, cam_ob, frame)
         #        scene.update()
@@ -2264,7 +2421,8 @@ class Path_SMPL_FBX_File(Operator, ImportHelper):
     def execute(self,context):
 
         # path = self.filepath
-        context.scene.sk_value_prop.sk_smpl_path = os.path.dirname(self.filepath)
+        # context.scene.sk_value_prop.sk_smpl_path = os.path.dirname(self.filepath)
+        context.scene.sk_value_prop.sk_smpl_path = self.filepath
 
 
         return{'FINISHED'}
