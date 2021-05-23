@@ -291,9 +291,19 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
                 obj_gender = 'n'
 
             if obj_gender == 'n':
-                obname = 'SMPLX-mesh-male'
-                ob = bpy.data.objects[obname]
-                arm_obj = 'SMPLX-male'
+                for mesh in bpy.data.objects.keys():
+                    if mesh == 'SMPLX-mesh-male':
+                        ob = bpy.data.objects[mesh]
+                        arm_obj = 'SMPLX-male'   
+                    if mesh == 'SMPLX-mesh-female':
+                        ob = bpy.data.objects[mesh]
+                        arm_obj = 'SMPLX-female'
+                    if mesh == 'SMPLX-mesh-neutral':
+                        ob = bpy.data.objects[mesh]
+                        arm_obj = 'SMPLX-neutral'   
+                # obname = 'SMPLX-mesh-male'
+                # ob = bpy.data.objects[obname]
+                # arm_obj = 'SMPLX-male'
                 obname = 'n'
                 
             else:
