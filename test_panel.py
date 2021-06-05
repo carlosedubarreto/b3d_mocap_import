@@ -16,6 +16,8 @@ class Test_PT_Panel(bpy.types.Panel):
         # percent_render_var = sk_value_prop.sk_value
 
         row = layout.row()
+        row.operator('mocap.import_audio2face', text="Import Nvidia Audio2Face")
+        row = layout.row()
         row.prop(sk_value_prop, "sk_raw_bool", text="Raw Import")
         row = layout.row()
         row.prop(sk_value_prop, "sk_constraint_limit_rotation_bool", text="Constraint Limit Rotation")

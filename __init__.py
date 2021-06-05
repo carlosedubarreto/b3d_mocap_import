@@ -11,20 +11,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.621
-# - choose SMPL model Male or female (instead of only the male one)
-# - option to choose SMPLX model (with hands and face animation)
-# - the SMPLX model with fingers should be generated using this addon https://gitlab.tuebingen.mpg.de/jtesch/smplx_blender_addon and exported the Male character to FBX
-# - at the moment easymocap doesnt export hand and finger movement, so it need to apply these changes https://github.com/zju3dv/EasyMocap/issues/25#issuecomment-842266080
-# when generating the data from easymocap, the parameters like this "python apps/demo/mv1p.py 0_input/20210505_guitar --out 1_output/20210505_guitar --vis_det --vis_repro --undis --sub_vis 1 2 --body bodyhandface --model smplx --gender male --vis_smpl"
-# - hability to import also the female and neutral SMPLX fbx files
+# beta 0.7
+# - import audio2face files for face mocap
 
 bl_info = {
     "name" : "MOCAP Pose Estimation Data Import",
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 62),
+    "version" : (0, 0, 7),
     "location" : "View3D",
     "warning" : "",
     "category" : "Generic"
@@ -41,11 +36,13 @@ from bpy.props import (#StringProperty,
                        )
 
 from . load_mocap import Import_Data_easymocap, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation, \
-                        Install_Mediapipe,Install_Joblib,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation,Smooth_Bone, Reload_sk_easymocap, Import_SMPL_easymocap,Path_SMPL_FBX_File
+                        Install_Mediapipe,Install_Joblib,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation,Smooth_Bone, \
+                            Reload_sk_easymocap, Import_SMPL_easymocap,Path_SMPL_FBX_File,Audio2face_Import
 from . test_panel import Test_PT_Panel, MySettings, Install_PT_Panel, Modify_PT_Panel,Debug_PT_Panel
 
 classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_vibe,Mediapipe_Pose_estimation,
-            Install_Mediapipe,Install_Joblib,MySettings,Modify_PT_Panel,Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation,Smooth_Bone,Debug_PT_Panel, Reload_sk_easymocap, Import_SMPL_easymocap, Path_SMPL_FBX_File)
+            Install_Mediapipe,Install_Joblib,MySettings,Modify_PT_Panel,Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,
+            Compensate_Rotation,Smooth_Bone,Debug_PT_Panel, Reload_sk_easymocap, Import_SMPL_easymocap, Path_SMPL_FBX_File,Audio2face_Import)
 
 # register, unregister = bpy.utils.register_classes_factory(classes)
 def register():
