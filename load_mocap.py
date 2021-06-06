@@ -3,6 +3,7 @@ import os
 import bpy
 from bpy import context
 from bpy_extras.io_utils import ImportHelper
+from bpy_extras.io_utils import ExportHelper
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from . helper import helper_functions, skeleton_import
@@ -2482,13 +2483,6 @@ class Audio2face_Import(Operator, ImportHelper):
         full_filename = os.path.basename(self.filepath)
         fileName=full_filename.split('.')[0]
 
-        
-
-
-
-
-
-
 
         """
 
@@ -3016,5 +3010,109 @@ class Audio2face_Import(Operator, ImportHelper):
         bpy.ops.object.modifier_add(type='MESH_CACHE')
         ob.modifiers['MeshCache'].cache_format = 'PC2'
         ob.modifiers['MeshCache'].filepath = filepathpc2
+
+        return{'FINISHED'}
+
+
+class Audio2face_Export(Operator, ExportHelper):
+    bl_idname = "mocap.export_audio2face"
+    bl_label = "Export object to process in Audio2face from Nvidia Omniverse"
+    bl_description = "Export object to process inAudio2face from Nvidia Omniverse"
+
+    filename_ext = ".usda"
+
+    # filter_glob: StringProperty(
+    #     default="*.usda",
+    #     options={'HIDDEN'},
+    #     maxlen=255,  # Max internal buffer length, longer would be clamped.
+    # )
+
+    def execute(self,context):
+
+        path = os.path.dirname(self.filepath)
+        full_filename = os.path.basename(self.filepath)
+        fileName=full_filename.split('.')[0]
+        fileExtension=full_filename.split('.')[1]
+
+        path_file_fixed = os.path.join(path,fileName+'_fixed.'+fileExtension)
+
+
+        #str_filepath = r'D:\Downloads\0_Projetos\RPGuaxa\38_A Falta da Michele\lib\Personagem\MH_test_Alicia_audio2facea\MH_alicia.usda'
+        bol_selected_objects_only = True
+        bol_visible_objects_only = True
+
+        #Preparing to change some parameters that works better on audio2face
+        ob = bpy.context.active_object
+
+        import mathutils
+        import math
+        #creating default variables to apply
+        scale_to_exp = mathutils.Vector((100.0, 100.0, 100.0))
+        loc_to_exp = mathutils.Vector((0.0, 160.0, 0.0))
+        rot_quat_to_exp = mathutils.Quaternion((0.707107, -0.707107, 0.0, 0.0))
+        rot_euler_to_exp = mathutils.Euler((math.radians(-90.0), 0.0, 0.0), 'XYZ')
+
+        #zero the flag for quaternion rotation
+        flag_orig_rot_mode_quat = 0
+
+        orig_scale_x = ob.scale.x
+        orig_scale_y = ob.scale.y
+        orig_scale_z = ob.scale.z
+
+        orig_loc_x = ob.location.x
+        orig_loc_y = ob.location.y
+        orig_loc_z = ob.location.z
+        orig_rot_mode = ob.rotation_mode
+
+
+        ##setting to the rotation, location and scale to export the data
+        if orig_rot_mode == 'QUATERNION':
+            flag_orig_rot_mode_quat = 1
+            orig_rot_w = ob.rotation_quaternion.w
+            orig_rot_x = ob.rotation_quaternion.x
+            orig_rot_y = ob.rotation_quaternion.y
+            orig_rot_z = ob.rotation_quaternion.z
+            ob.rotation_quaternion = rot_quat_to_exp
+        else:
+            flag_orig_rot_mode_quat = 0
+            orig_rot_x = ob.rotation_euler.x
+            orig_rot_y = ob.rotation_euler.y
+            orig_rot_z = ob.rotation_euler.z
+            ob.rotation_euler = rot_euler_to_exp
+
+        ob.scale = scale_to_exp
+        ob.location = loc_to_exp
+
+        ###Exporting the USDa file
+        bpy.ops.wm.usd_export(filepath=self.filepath , 
+            selected_objects_only= bol_selected_objects_only, visible_objects_only=bol_visible_objects_only)
+
+        ###Fixing file to be read in Audio2face
+        fin = open(self.filepath, "rt")
+        fout = open(path_file_fixed, "wt")
+        for idx,line in enumerate(fin):
+            # print(idx,'-',line)
+            if idx == 3:
+                #read replace the string and write to output file
+                fout.write(line.replace('metersPerUnit = 1', 'metersPerUnit = 0.01'))
+            elif idx == 4:
+                fout.write(line.replace('upAxis = "Z"', 'upAxis = "Y"'))
+                upAxis = "Z"
+            else:
+                fout.write(line)
+        # print('fin close')
+        fin.close()
+        # print('fout close')
+        fout.close()
+
+
+        #getting the original values back
+        ob.scale = mathutils.Vector((orig_scale_x, orig_scale_y, orig_scale_z))
+        ob.location = mathutils.Vector((orig_loc_x, orig_loc_y, orig_loc_z))
+
+        if flag_orig_rot_mode_quat == 1:
+            ob.rotation_quaternion = mathutils.Quaternion((orig_rot_w, orig_rot_x, orig_rot_y, orig_rot_z))
+        else:
+            ob.rotation_euler = mathutils.Euler((orig_rot_x, orig_rot_y, orig_rot_z))
 
         return{'FINISHED'}
