@@ -11,17 +11,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.72
+# beta 0.721
 # - export MDD
 # - import as shapekeys
 # - create NLA strips from Audio2face data
+# - import the NLA strip where the current frame is
 
 bl_info = {
     "name" : "MOCAP Pose Estimation Data Import",
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 72),
+    "version" : (0, 0, 721),
     "location" : "View3D",
     "warning" : "",
     "category" : "Generic"

@@ -2786,7 +2786,7 @@ class Audio2face_Import_to_NLA(Operator, ImportHelper):
         ###### fom da copia do blender script para import MDD
 
 
-        def to_nla_shapekey_track(context,filename):
+        def to_nla_shapekey_track(context,filename,frame_start):
             #convertendo para shapekey
             obj = bpy.context.object
             assert(obj is not None), "no active object"
@@ -2798,7 +2798,8 @@ class Audio2face_Import_to_NLA(Operator, ImportHelper):
             anim_data.use_nla = True
             #
             track = anim_data.nla_tracks.new()
-            offset = 0
+            # offset = 0
+            offset = frame_start
             action = obj.data.shape_keys.animation_data.action
             action.name = fileName
             track.strips.new(action.name, offset, action)
@@ -2829,9 +2830,10 @@ class Audio2face_Import_to_NLA(Operator, ImportHelper):
         #gerando resultado
         #do_export_pc2(result,filepathpc2)
         context = bpy.context
+        frame_start = bpy.context.scene.frame_current
         do_export_mdd(result,filepathmdd, fps,context)
         load_mdd(context, filepathmdd,fileName)
-        to_nla_shapekey_track(context,fileName)
+        to_nla_shapekey_track(context,fileName,frame_start)
 
         return{'FINISHED'}
 
