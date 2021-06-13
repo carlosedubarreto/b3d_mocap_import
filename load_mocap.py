@@ -6,7 +6,7 @@ from bpy_extras.io_utils import ImportHelper
 from bpy_extras.io_utils import ExportHelper
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, EnumProperty
-from . helper import helper_functions, skeleton_import
+from . helper import helper_functions, skeleton_import, CacheChannel, CacheFile
 import math
 
 
@@ -2436,7 +2436,6 @@ class Path_SMPL_FBX_File(Operator, ImportHelper):
 
         return{'FINISHED'}
 
-
 class Audio2face_Import(Operator, ImportHelper):
     bl_idname = "mocap.import_audio2face"
     bl_label = "Convert and import Audio2face from Nvidia Omniverse"
@@ -2450,506 +2449,17 @@ class Audio2face_Import(Operator, ImportHelper):
         maxlen=255,  # Max internal buffer length, longer would be clamped.
     )
 
+    
+
     def execute(self,context):
+
+        import struct
 
         # from __future__ import print_function
         # from __future__ import division
-        from builtins import object
-        from builtins import range
-        import os
-        import os.path
-        # import getopt
-        import sys
-        import xml.dom.minidom
-        import string
-        import re
-        import array
-
-        import bpy
-        #from bpy.props import BoolProperty, IntProperty, EnumProperty
-        import mathutils
-        #from bpy_extras.io_utils import ExportHelper
-
-        from os import remove
-        import time
-        #import math
-        import struct
-
-        # path = self.filepath
-        # context.scene.sk_value_prop.sk_smpl_path = os.path.dirname(self.filepath)
-        # context.scene.sk_value_prop.sk_smpl_path = self.filepath
-
         path = os.path.dirname(self.filepath)
         full_filename = os.path.basename(self.filepath)
         fileName=full_filename.split('.')[0]
-
-
-        """
-
-        python cacheFileExample.py -f mayaCacheFile.xml
-
-        """
-        def fileFormatError():
-            print("Error: unable to read cache format\n");
-            sys.exit(2)
-
-        def readTag(fd,tagFOR,blockTag):
-            count = 4
-            blockTag.append(fd.read(4))	
-            # Padding
-            if tagFOR == "FOR8":
-                fd.read(4)
-                count = 8
-            return count
-        
-        def readInt(fd,needSwap,tagFOR):
-            intArray = array.array('l') 
-            size = 1
-            if tagFOR == "FOR8":
-                size = 2
-            intArray.fromfile(fd,size)
-            if needSwap:    
-                intArray.byteswap()
-            return intArray[size - 1]        
-
-        class CacheChannel(object):
-            m_channelName = ""
-            m_channelType = ""                
-            m_channelInterp = ""
-            m_sampleType = ""
-            m_sampleRate = 0
-            m_startTime = 0
-            m_endTime = 0      
-            def __init__(self,channelName,channelType,interpretation,samplingType,samplingRate,startTime,endTime):
-                self.m_channelName = channelName
-                self.m_channelType = channelType                
-                self.m_channelInterp = interpretation
-                self.m_sampleType = samplingType
-                self.m_sampleRate = samplingRate
-                self.m_startTime = startTime
-                self.m_endTime = endTime     
-                print("Channel Name =%s,type=%s,interp=%s,sampleType=%s,rate=%d,start=%d,end=%d\n"%(channelName, channelType, interpretation, samplingType, samplingRate, startTime, endTime))
-                
-        class CacheFile(object):
-            m_baseFileName = ""
-            m_directory = ""    
-            m_cacheType = ""
-            m_cacheStartTime = 0
-            m_cacheEndTime = 0
-            m_timePerFrame = 0
-            m_version = 0.0
-            m_channels = []
-            m_printChunkInfo = False
-            m_tagSize = 4
-            m_blockTypeSize = 4
-            m_glCount = 0
-            m_numFramesToPrint = 2
-        #    m_numFramesToPrint = 135
-            #
-            ########################################################################
-            #   Description:
-            #       Class constructor - tries to figure out full path to cache
-            #       xml description file before calling parseDescriptionFile()
-            #
-            def __init__(self,fileName):
-                # fileName can be the full path to the .xml description file,
-                # or just the filename of the .xml file, with or without extension
-                # if it is in the current directory
-                dir = os.path.dirname(fileName)
-                fullPath = ""
-                if dir == "":
-                    currDir = os.getcwd() 
-                    fullPath = os.path.join(currDir,fileName)
-                    if not os.path.exists(fullPath):
-                        fileName = fileName + '.xml';
-                        fullPath = os.path.join(currDir,fileName)
-                        if not os.path.exists(fullPath):
-                            print("Sorry, can't find the file %s to be opened\n" % fullPath)
-                            sys.exit(2)                    
-                else:
-                    fullPath = fileName                
-                #
-                self.m_baseFileName = os.path.basename(fileName).split('.')[0]        
-                self.m_directory = os.path.dirname(fullPath)
-                self.parseDescriptionFile(fullPath)
-            ########################################################################
-            # Description:
-            #   Given the full path to the xml cache description file, this 
-            #   method parses its contents and sets the relevant member variables
-            #
-            def parseDescriptionFile(self,fullPath):          
-                dom = xml.dom.minidom.parse(fullPath)
-                root = dom.getElementsByTagName("Autodesk_Cache_File")
-                allNodes = root[0].childNodes
-                for node in allNodes:
-                    if node.nodeName == "cacheType":
-                        self.m_cacheType = node.attributes.item(0).nodeValue                
-                    if node.nodeName == "time":
-                        timeRange = node.attributes.item(0).nodeValue.split('-')
-                        self.m_cacheStartTime = int(timeRange[0])
-                        self.m_cacheEndTime = int(timeRange[1])
-                    if node.nodeName == "cacheTimePerFrame":
-                        self.m_timePerFrame = int(node.attributes.item(0).nodeValue)
-                    if node.nodeName == "cacheVersion":
-                        self.m_version = float(node.attributes.item(0).nodeValue)                
-                    if node.nodeName == "Channels":
-                        self.parseChannels(node.childNodes)
-            ########################################################################
-            # Description:
-            #   helper method to extract channel information
-            #            
-            def parseChannels(self,channels):                         
-                for channel in channels:
-                    if re.compile("channel").match(channel.nodeName) != None :
-                        channelName = ""
-                        channelType = ""                
-                        channelInterp = ""
-                        sampleType = ""
-                        sampleRate = 0
-                        startTime = 0
-                        endTime = 0                                               
-                        for index in range(0,channel.attributes.length):
-                            attrName = channel.attributes.item(index).nodeName                                                            
-                            if attrName == "ChannelName":                        
-                                channelName = channel.attributes.item(index).nodeValue                        
-                            if attrName == "ChannelInterpretation":
-                                channelInterp = channel.attributes.item(index).nodeValue
-                            if attrName == "EndTime":
-                                endTime = int(channel.attributes.item(index).nodeValue)
-                            if attrName == "StartTime":
-                                startTime = int(channel.attributes.item(index).nodeValue)
-                            if attrName == "SamplingRate":
-                                sampleRate = int(channel.attributes.item(index).nodeValue)
-                            if attrName == "SamplingType":
-                                sampleType = channel.attributes.item(index).nodeValue
-                            if attrName == "ChannelType":
-                                channelType = channel.attributes.item(index).nodeValue
-                        channelObj = CacheChannel(channelName,channelType,channelInterp,sampleType,sampleRate,startTime,endTime)
-                        self.m_channels.append(channelObj)
-            def printIntData( self, count, data, desc ):
-                if self.m_printChunkInfo: 
-                    print("%0.2d  %d %s" % (count, data, desc ))
-            def printBlockSize( self, count, blockSize ):
-                if self.m_printChunkInfo: 
-                    print("%0.2d  %d Bytes" % (count, blockSize))
-            def printTag( self, count, tag ):
-                if self.m_printChunkInfo: 
-                    print("%0.2d  %s" % (count, tag))
-            def printString( self, text ):
-                if self.m_printChunkInfo: 
-                    print(text)
-            def printTime( self, count, time ):
-                if self.m_printChunkInfo: 
-                    print("%0.2d  %d sec" % (count, time))
-            def readHeader( self, fd,needSwap,tagFOR ):
-                self.printString( "\nHEADER" ) 
-                #CACH
-                blockTag = fd.read(self.m_tagSize)
-                self.m_glCount += self.m_tagSize
-                self.printTag(self.m_glCount, blockTag)
-                #
-                #VRSN (version)
-                blockTagList = []
-                self.m_glCount += readTag(fd, tagFOR, blockTagList)
-                self.printTag( self.m_glCount, blockTagList[0] )
-                #
-                blockSize = readInt(fd,needSwap,tagFOR)
-                self.m_glCount += self.m_blockTypeSize
-                self.printBlockSize(self.m_glCount, blockSize)
-                #
-                version = fd.read(self.m_blockTypeSize)
-                self.m_glCount += self.m_blockTypeSize
-                self.printTag(self.m_glCount, version)
-                #
-                #STIM (start time)
-                blockTagList = []
-                self.m_glCount += readTag(fd, tagFOR, blockTagList)
-                self.printTag(self.m_glCount, blockTagList[0])
-                #
-                blockSize = readInt(fd,needSwap,tagFOR)
-                self.m_glCount += self.m_blockTypeSize
-                self.printBlockSize(self.m_glCount, blockSize)
-                #
-                startTime = readInt(fd,needSwap,tagFOR)
-                self.m_glCount += self.m_blockTypeSize
-                self.printTime( self.m_glCount, startTime )
-                #
-                #ETIM (end time)
-                blockTagList = []
-                self.m_tagSize = readTag(fd, tagFOR, blockTagList)
-                self.m_glCount += self.m_tagSize
-                self.printTag(self.m_glCount, blockTagList[0])
-                #
-                blockSize = readInt(fd,needSwap,tagFOR)
-                self.m_glCount += self.m_blockTypeSize
-                self.printBlockSize(self.m_glCount, blockSize)
-                #
-                endtime = readInt(fd,needSwap,tagFOR)
-                self.m_glCount += self.m_blockTypeSize
-                self.printTime( self.m_glCount, endtime )
-            def readData(self, fd, bytesRead, dataBlockSize, needSwap, tagFOR ):
-                # print "Data found at time %f seconds:\n"%(time/6000.0)            
-                while bytesRead < dataBlockSize:
-                    #
-                    self.printString( "\nDATA" ) 
-                    #
-                    #channel name is next.
-                    #the tag for this must be CHNM
-                    blockTagList = []
-                    bytesRead += readTag(fd, tagFOR, blockTagList)
-                    self.m_glCount += bytesRead			
-                    self.printTag(self.m_glCount, blockTagList[0])
-                    #
-                    chnmTag = blockTagList[0]
-                    if chnmTag != b"CHNM":
-                        fileFormatError()
-                    #     
-                    #Next comes a 32/64 bit that tells us how long the 
-                    #channel name is
-                    chnmSize = readInt(fd,needSwap,tagFOR)
-                    bytesRead += self.m_blockTypeSize
-                    self.m_glCount += bytesRead			
-                    self.printBlockSize(self.m_glCount, chnmSize)
-                    #
-                    #The string is padded out to 32 bit boundaries,
-                    #so we may need to read more than chnmSize
-                    mask = 3
-                    if tagFOR == b"FOR8":
-                        mask = 7
-                    chnmSizeToRead = (chnmSize + mask) & (~mask)            
-                    channelName = fd.read(chnmSize)
-                    paddingSize = chnmSizeToRead-chnmSize
-                    if paddingSize > 0:
-                        fd.read(paddingSize)
-                    bytesRead += chnmSizeToRead
-                    self.m_glCount += bytesRead			
-                    self.printTag(self.m_glCount, channelName)
-                    #
-                    #Next is the SIZE field, which tells us the length 
-                    #of the data array
-                    blockTagList = []
-                    bytesRead += readTag(fd, tagFOR, blockTagList)
-                    self.m_glCount += bytesRead			
-                    self.printTag(self.m_glCount, blockTagList[0])
-                    #
-                    sizeTag = blockTagList[0]
-                    if sizeTag != b"SIZE":
-                        fileFormatError()
-                    #
-                    blockSize = readInt(fd,needSwap,tagFOR)
-                    bytesRead += self.m_blockTypeSize
-                    self.m_glCount += bytesRead
-                    self.printBlockSize(self.m_glCount, blockSize)
-                    #
-                    #finally the actual size of the array:
-                    arrayLength = readInt(fd,needSwap,"")
-                    # Padding for FOR8
-                    if tagFOR == b"FOR8":
-                        readInt(fd,needSwap,"")
-                    bytesRead += self.m_blockTypeSize
-                    self.m_glCount += bytesRead			
-                    self.printIntData( self.m_glCount, arrayLength, "arrayLength" )
-                    #
-                    #data format tag:
-                    blockTagList = []
-                    bytesRead += readTag(fd, tagFOR, blockTagList)
-                    self.m_glCount += bytesRead			
-                    self.printTag(self.m_glCount, blockTagList[0])
-                    #
-                    dataFormatTag = blockTagList[0]
-                    #
-                    #buffer length - how many bytes is the actual data
-                    bufferLength = readInt(fd,needSwap,tagFOR)
-                    bytesRead += self.m_blockTypeSize
-                    self.m_glCount += bytesRead
-                    self.printIntData( self.m_glCount, bufferLength, "bufferLength" )
-                    #     
-        #            numPointsToPrint = 5
-                    numPointsToPrint = arrayLength
-                    if dataFormatTag == b"FVCA":
-                        #FVCA == Float Vector Array
-                        if bufferLength != arrayLength*3*4:
-                            fileFormatError()
-                        floatArray = array.array('f')    
-                        floatArray.fromfile(fd,arrayLength*3)
-                        bytesRead += arrayLength*3*4
-                        self.m_glCount += bytesRead				
-                        if needSwap:    
-                            floatArray.byteswap()
-                        if numPointsToPrint > arrayLength:
-                            numPointsToPrint = arrayLength                
-                        print("Channelname = %s,Data type float vector array,length = %d elements, First %d points:" % (channelName, arrayLength, numPointsToPrint))
-                        print(floatArray[0:numPointsToPrint*3])
-                    elif dataFormatTag == b"DVCA":                    
-                        #DVCA == Double Vector Array
-                        if bufferLength != arrayLength*3*8:
-                            fileFormatError()
-                        doubleArray = array.array('d')    
-                        doubleArray.fromfile(fd,arrayLength*3)
-                        bytesRead += arrayLength*3*8
-                        self.m_glCount += bytesRead
-                        if needSwap:    
-                            doubleArray.byteswap()
-                        if numPointsToPrint > arrayLength:
-                            numPointsToPrint = arrayLength                
-                        print("Channelname = %s,Data type double vector array,length = %d elements, First %d points:" % (channelName, arrayLength, numPointsToPrint))
-        #                print(doubleArray[0:numPointsToPrint*3])
-        #                print('enviar')
-                        return doubleArray[0:numPointsToPrint*3]
-        #            elif dataFormatTag == b"DBLA":
-        #                #DBLA == Double Array
-        #                print("")
-        #                if bufferLength != arrayLength*8:
-        #                    fileFormatError()
-        #                doubleArray = array.array('d')    
-        #                doubleArray.fromfile(fd,arrayLength)
-        #                bytesRead += arrayLength*8
-        #                self.m_glCount += bytesRead				
-        #                if needSwap:    
-        #                    doubleArray.byteswap()
-        #                if numPointsToPrint > arrayLength:
-        #                    numPointsToPrint = arrayLength                
-        #                print("Channelname = %s,Data type double array,length = %d elements, First %d points:" % (channelName, arrayLength, numPointsToPrint))
-        #                print(doubleArray[0:numPointsToPrint])
-        #            elif dataFormatTag == b"FBCA":
-        #                #FBCA == Float Array
-        #                print("")
-        #                if bufferLength != arrayLength*4:
-        #                    fileFormatError()
-        #                doubleArray = array.array('f')    
-        #                doubleArray.fromfile(fd,arrayLength)
-        #                bytesRead += arrayLength*4
-        #                self.m_glCount += bytesRead				
-        #                if needSwap:    
-        #                    doubleArray.byteswap()
-        #                if numPointsToPrint > arrayLength:
-        #                    numPointsToPrint = arrayLength                
-        #                print("Channelname = %s,Data type float array,length = %d elements, First %d points:" % (channelName, arrayLength, numPointsToPrint))
-        #                print(doubleArray[0:numPointsToPrint])
-        #            else:
-        #                fileFormatError()   
-                    #Padding                
-                    sizeToRead = (bufferLength + mask) & (~mask)            
-                    paddingSize = sizeToRead-bufferLength
-                    if paddingSize > 0:
-                        fd.read(paddingSize)
-                    bytesRead += paddingSize
-                    self.m_glCount += bytesRead		
-                    print("\n")
-            ########################################################################
-            # Description:
-            #   method to parse and display the contents of the data file, for the
-            #   One large file case ("OneFile")             
-            def parseDataOneFile(self):
-                dataFilePath = os.path.join(cacheFile.m_directory,cacheFile.m_baseFileName)
-                dataFilePath = dataFilePath + ".mc"
-                self.m_glCount = 0
-                self.m_tagSize = 4
-                self.m_blockTypeSize = 4
-                if not os.path.exists(dataFilePath):
-                    print("Error: unable to open cache data file at %s\n" % dataFilePath)
-                    sys.exit(2)	
-                fd = open(dataFilePath,"rb")
-                tagFOR = fd.read(4)
-                self.m_glCount += 4 
-                # Padding
-                if tagFOR == b"FOR8":
-                    fd.read(4)
-                    self.m_glCount += 4 
-                    self.m_blockTypeSize = 8
-                #            
-                self.printTag( self.m_glCount, tagFOR)
-                #
-                #blockTag must be FOR4/FOR8
-                if tagFOR != b"FOR4" and tagFOR != b"FOR8":
-                    fileFormatError()
-                #
-                platform = sys.platform
-                needSwap = False
-                if re.compile("win").match(platform) != None :
-                    needSwap = True
-                #
-                if re.compile("linux").match(platform) != None :
-                    needSwap = True
-                #
-                blockSize = readInt(fd,needSwap,tagFOR)    
-                self.m_glCount += self.m_blockTypeSize
-                self.printBlockSize( self.m_glCount ,blockSize )
-                #
-                self.readHeader(fd,needSwap,tagFOR)
-                self.m_glCount += blockSize
-                #       
-                frameCount = 0
-                mc_data = []
-                #
-                totalFrames = int(self.m_cacheEndTime/self.m_timePerFrame)
-                # print('teste time per frame: ',totalFrames)
-                # while frameCount < self.m_numFramesToPrint:
-                while frameCount < totalFrames:
-                    frameCount+=1;
-                    #
-                    print("\n\nREAD FRAME %d" % (frameCount))
-                    #
-                    #From now on the file is organized in blocks of time
-                    #Each block holds the data for all the channels at that
-                    #time
-                    tagFOR = fd.read(4)
-                    # Padding
-                    if tagFOR == b"FOR8":
-                        fd.read(4)
-                    #
-                    if tagFOR == "":
-                        #EOF condition...we are done
-                        return
-                    #
-                    if tagFOR != b"FOR4" and tagFOR != b"FOR8":
-                        fileFormatError()
-                    #
-                    self.m_glCount += self.m_blockTypeSize
-                    self.printTag( self.m_glCount, tagFOR)	
-                    #
-                    dataBlockSize = readInt(fd,needSwap,tagFOR)
-                    self.m_glCount += self.m_blockTypeSize
-                    self.printBlockSize(self.m_glCount, dataBlockSize)
-                    #
-                    self.printString( "\nFRAMEINFO" ) 
-                    # 
-                    bytesRead = 0
-                    blockTagList = []
-                    bytesRead += readTag(fd, "", blockTagList)
-                    self.m_glCount += bytesRead
-                    self.printTag(self.m_glCount, blockTagList[0])
-                    # 
-                    mychTag = blockTagList[0]
-                    if mychTag != b"MYCH":
-                        fileFormatError()
-                    # 
-                    blockTagList = []
-                    bytesRead += readTag(fd, tagFOR, blockTagList)
-                    self.m_glCount += bytesRead
-                    self.printTag(self.m_glCount, blockTagList[0])
-                    # 
-                    if blockTagList[0] != b"TIME":
-                        fileFormatError()
-                    #
-                    blockSize = readInt(fd,needSwap,tagFOR)
-                    bytesRead += self.m_blockTypeSize
-                    self.m_glCount += bytesRead
-                    self.printBlockSize(self.m_glCount, blockSize)
-                    #
-                    #Next 32/64 bit int is the time itself, in ticks
-                    #1 tick = 1/6000 of a second
-                    time = readInt(fd,needSwap,tagFOR)
-                    bytesRead += self.m_blockTypeSize
-                    self.m_glCount += bytesRead		
-                    self.printTime( self.m_glCount, time )
-                    #
-                    print("--------------------------------------------------------------\n")      
-                    print("Data found at time %f seconds:\n"%(time))                    
-                    #          
-                    mc_data.append(self.readData( fd, bytesRead, dataBlockSize, needSwap, tagFOR ))
-                    #            
-                return mc_data
 
         def do_export_pc2(result, filepath):
             vertCount = int(len(result[0])/3)
@@ -2996,7 +2506,7 @@ class Audio2face_Import(Operator, ImportHelper):
         #converting mc file to string
         os.chdir(path)
         cacheFile = CacheFile(fileName)
-        result = cacheFile.parseDataOneFile()
+        result,fps = cacheFile.parseDataOneFile()
 
         #exporting pc2
         filepathpc2 = os.path.join(path,fileName)
@@ -3012,7 +2522,6 @@ class Audio2face_Import(Operator, ImportHelper):
         ob.modifiers['MeshCache'].filepath = filepathpc2
 
         return{'FINISHED'}
-
 
 class Audio2face_Export(Operator, ExportHelper):
     bl_idname = "mocap.export_audio2face"
@@ -3115,4 +2624,279 @@ class Audio2face_Export(Operator, ExportHelper):
         else:
             ob.rotation_euler = mathutils.Euler((orig_rot_x, orig_rot_y, orig_rot_z))
 
+        return{'FINISHED'}
+
+
+class Audio2face_Import_to_NLA(Operator, ImportHelper):
+    bl_idname = "mocap.import_audio2face_to_nla"
+    bl_label = "Convert and import Audio2face to NLA Strip"
+    bl_description = "Convert and import Audio2face to NLA Strip"
+
+    filename_ext = ".mc"
+
+    filter_glob: StringProperty(
+        default="*.mc",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )
+
+    def execute(self,context):
+
+        # from __future__ import print_function
+        # from __future__ import division
+        from builtins import object
+        from builtins import range
+        import os
+        import os.path
+        # import getopt
+        import sys
+        import xml.dom.minidom
+        import string
+        import re
+        import array
+
+        import bpy
+        #from bpy.props import BoolProperty, IntProperty, EnumProperty
+        import mathutils
+        #from bpy_extras.io_utils import ExportHelper
+
+        from os import remove
+        import time
+        #import math
+        import struct
+
+        # path = self.filepath
+        # context.scene.sk_value_prop.sk_smpl_path = os.path.dirname(self.filepath)
+        # context.scene.sk_value_prop.sk_smpl_path = self.filepath
+
+        path = os.path.dirname(self.filepath)
+        full_filename = os.path.basename(self.filepath)
+        fileName=full_filename.split('.')[0]
+
+
+        def do_export_mdd(result, filepath, fps, context):
+            vertCount = int(len(result[0])/3)
+            sampleCount = len(result)
+            sampling = 1
+            start=0
+            #
+            # Create the header
+            file = open(filepath, 'wb')  # no Errors yet:Safe to create file
+            #
+            # Write the header
+            file.write(struct.pack(">2i", sampleCount, vertCount))
+            #
+            # Write the frame times (should we use the time IPO??)
+            file.write(struct.pack(">%df" % (sampleCount), *[frame / fps for frame in range(sampleCount)]))  # seconds
+            # 
+            v_collect = []
+            for idx,frame in enumerate(result):
+                #for v in me.vertices:
+                print('frame number: ',idx)
+                file.write(struct.pack(">%df" % (vertCount * 3), *[v for v in frame]))
+        #        for v in range(int(len(frame)/3)):
+        ##        for v in range(3):
+        ##            print('vertice :',v)
+        #            x=frame[0+(v*3)]
+        #            y=frame[1+(v*3)]
+        #            z=frame[2+(v*3)]
+        ##            print(v,'-x: ',x,' y: ',y,' z: ',z)
+        #            thisVertex = struct.pack(">%df" % (vertCount * 3), float(x),
+        #                                     float(y),
+        #                                     float(z))
+        #            file.write(thisVertex)
+        #            v_collect.append(v)
+            file.flush()
+            file.close()
+            return True
+
+
+        ############## trecho do import MDD copiade dos scripts do blender
+
+        def set_linear_interpolation(obj, shapekey):
+            anim_data = obj.data.shape_keys.animation_data
+            data_path = "key_blocks[\"" + shapekey.name + "\"].value"
+            #
+            for fcu in anim_data.action.fcurves:
+                if fcu.data_path == data_path:
+                    for keyframe in fcu.keyframe_points:
+                        keyframe.interpolation = 'LINEAR'
+
+
+        def obj_update_frame(file, scene, obj, start, fr, step,filename):
+            # Insert new shape key
+            new_shapekey = obj.shape_key_add()
+        #    new_shapekey.name = ("frame_%.4d" % fr)
+            new_shapekey.name = (filename+"_%.4d" % fr)
+            new_shapekey_index = len(obj.data.shape_keys.key_blocks) - 1
+            #
+            obj.active_shape_key_index = new_shapekey_index
+            obj.show_only_shape_key = True
+            #
+            verts = new_shapekey.data
+            #
+            for v in verts:  # 12 is the size of 3 floats
+                v.co[:] = struct.unpack('>3f', file.read(12))
+            # me.update()
+            obj.show_only_shape_key = False
+            # insert keyframes
+            new_shapekey = obj.data.shape_keys.key_blocks[new_shapekey_index]
+            frame = start + fr*step
+            #
+            new_shapekey.value = 0.0
+            new_shapekey.keyframe_insert("value", frame=frame - step)
+            #
+            new_shapekey.value = 1.0
+            new_shapekey.keyframe_insert("value", frame=frame)
+            #
+            new_shapekey.value = 0.0
+            new_shapekey.keyframe_insert("value", frame=frame + step)
+            set_linear_interpolation(obj, new_shapekey)
+            obj.data.update()
+
+
+        def load_mdd(context, filepath, filename, frame_start=0, frame_step=1):
+            #
+            scene = context.scene
+            obj = context.object
+            #
+            print('\n\nimporting mdd %r' % filepath)
+            #
+            if bpy.ops.object.mode_set.poll():
+                bpy.ops.object.mode_set(mode='OBJECT')
+            #
+            file = open(filepath, 'rb')
+            frames, points = struct.unpack(">2i", file.read(8))
+            time = struct.unpack((">%df" % frames), file.read(frames * 4))
+            #
+            print('\tpoints:%d frames:%d' % (points, frames))
+            print('\tstart frame:%d step:%d' % (frame_start, frame_step))
+            #
+            # If target object doesn't have Basis shape key, create it.
+            if not obj.data.shape_keys:
+                basis = obj.shape_key_add()
+                basis.name = "Basis"
+                obj.data.update()
+            #
+            for i in range(frames):
+                obj_update_frame(file, scene, obj, frame_start, i, frame_step,filename)
+            #
+            return {'FINISHED'}
+
+        ###### fom da copia do blender script para import MDD
+
+
+        def to_nla_shapekey_track(context,filename):
+            #convertendo para shapekey
+            obj = bpy.context.object
+            assert(obj is not None), "no active object"
+            #
+            if obj.data.shape_keys.animation_data is None:
+                obj.data.shape_keys.animation_data_create()
+            #
+            anim_data = obj.data.shape_keys.animation_data
+            anim_data.use_nla = True
+            #
+            track = anim_data.nla_tracks.new()
+            offset = 0
+            action = obj.data.shape_keys.animation_data.action
+            action.name = fileName
+            track.strips.new(action.name, offset, action)
+            start, end = action.frame_range
+            offset += end - start
+            ##Cleaning the action editor
+            obj.data.shape_keys.animation_data.action = None
+            return {'FINISHED'}
+
+
+        #path = r'D:\MOCAP\Mayamc'
+        # path = r'D:\MOCAP\Mayamc\rosa_mc'
+        os.chdir(path)
+
+        #converting mc file to string
+        #fileName   = 'a2f_cache_quem_mexeu'
+        # fileName   = 'base_shoe'
+        cacheFile = CacheFile(fileName)
+        result,fps = cacheFile.parseDataOneFile()
+
+        #exporting pc2
+        filepathpc2 = os.path.join(path,fileName)
+        filepathpc2 = filepathpc2 + '.pc2'
+        filepathmdd = os.path.join(path,fileName)
+        filepathmdd = filepathmdd + '.mdd'
+
+
+        #gerando resultado
+        #do_export_pc2(result,filepathpc2)
+        context = bpy.context
+        do_export_mdd(result,filepathmdd, fps,context)
+        load_mdd(context, filepathmdd,fileName)
+        to_nla_shapekey_track(context,fileName)
+
+        return{'FINISHED'}
+
+class Audio2face_delete_action_shapekey_nla(Operator):
+    bl_idname = "mocap.delete_action_shapekey_nla"
+    bl_label = "Delete action,shape key and NLA Strip"
+    bl_description = "Delete action,shape key and NLA Strip"
+
+
+    
+
+    def execute(self,context):
+
+        def ShowMessageBox(message = "", title = "Information", icon = 'INFO'):
+
+            def draw(self, context):
+                self.layout.label(text=message)
+
+            bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
+
+        import bpy
+
+        obj = bpy.context.object
+        action = obj.data.shape_keys.animation_data.action
+        if action != None :
+            #limpa nla tracks com nome da acao
+            adsk = obj.data.shape_keys.animation_data
+            if adsk:
+                for i, track in enumerate(adsk.nla_tracks):
+                    if len(track.strips) >0:
+                        for j, strip in enumerate(track.strips):
+                            #strip para apagar
+                            if strip.name.startswith(action.name):
+                                print('strip apagar: ',strip.name)
+                                track.strips.remove(strip)
+            #comecar a limpeza the shape key e  action
+            for idx,shapekey in reversed(list(enumerate(obj.data.shape_keys.key_blocks))):
+                if shapekey.name.startswith(action.name):
+                    print('Delete - index: ',idx,'nome: ', shapekey.name)
+                    obj.active_shape_key_index = idx
+                    bpy.ops.object.shape_key_remove(all=False)
+                else:
+                    print('Keep - index: ',idx,'nome: ', shapekey.name)
+            #delete the action
+            bpy.data.actions.remove(bpy.data.actions[action.name])
+        else:
+            print('nothing to do, select an action to delete')
+            self.report({'INFO'}, "Nothing to do, select an ACTION to delete")
+            ShowMessageBox("Nothing to do, select an ACTION to delete")
+        
+        return{'FINISHED'}
+
+
+class Delete_unused_NLA_SK_tracks(Operator):
+    bl_idname = "mocap.delete_unused_sk_nla_tracks"
+    bl_label = "Delete unused NLA tracks"
+    bl_description = "Delete unused NLA tracks"
+
+    def execute(self,context):
+
+        import bpy
+        obj = bpy.context.object
+        adsk = obj.data.shape_keys.animation_data
+        if adsk:
+            for i, track in enumerate(adsk.nla_tracks):
+                if len(track.strips) ==0:
+                    adsk.nla_tracks.remove(track)
         return{'FINISHED'}
