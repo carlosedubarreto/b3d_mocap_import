@@ -228,20 +228,20 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             assert os.path.exists(outname), outname
             filename, file_extension = os.path.splitext(outname)
             datas = read_json(outname)
-            data_pkl = read_pkl(filename+'.pkl')
-            datas[0]['pose_new']=data_pkl[0].tolist()
+            # data_pkl = read_pkl(filename+'.pkl')
+            # datas[0]['pose_new']=data_pkl[0].tolist()
             outputs = []
             for data in datas:
-                # for key in ['Rh', 'Th', 'poses', 'shapes']:
-                for key in ['Rh', 'Th', 'pose_new', 'shapes']:
+                for key in ['Rh', 'Th', 'poses', 'shapes']:
+                # for key in ['Rh', 'Th', 'pose_new', 'shapes']:
                     data[key] = np.array(data[key])
                 outputs.append(data)
             return outputs
 
         def merge_params(param_list, share_shape=True):
             output = {}
-            # for key in ['poses', 'shapes', 'Rh', 'Th', 'expression']:
-            for key in ['pose_new', 'shapes', 'Rh', 'Th', 'expression']:
+            for key in ['poses', 'shapes', 'Rh', 'Th', 'expression']:
+            # for key in ['pose_new', 'shapes', 'Rh', 'Th', 'expression']:
                 if key in param_list[0].keys():
                     output[key] = np.vstack([v[key] for v in param_list])
             if share_shape:
@@ -266,8 +266,8 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             # BUG: not strictly equal: (Rh, Th, poses) != (Th, (Rh, poses))
             for pid in motions.keys():
                 motions[pid] = merge_params(motions[pid])
-                # motions[pid]['poses'][:, :3] = motions[pid]['Rh']
-                motions[pid]['pose_new'][:, :3] = motions[pid]['Rh']
+                motions[pid]['poses'][:, :3] = motions[pid]['Rh']
+                # motions[pid]['pose_new'][:, :3] = motions[pid]['Rh']
             return motions
             
         def load_smpl_params(datapath):
@@ -370,8 +370,8 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
             arm_ob.animation_data_clear()
         #    cam_ob.animation_data_clear()
             # load smpl params:
-            # nFrames = data['poses'].shape[0]
-            nFrames = data['pose_new'].shape[0]
+            nFrames = data['poses'].shape[0]
+            # nFrames = data['pose_new'].shape[0]
             for frame in range(nFrames):
                 # print(frame)
                 scene.frame_set(frame)
@@ -380,7 +380,8 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
                 shape = data['shapes'][0]
                 # pose_temp = data['poses'][frame]
                 # pose_temp = data['pose_new'][frame]
-                pose = data['pose_new'][frame]
+                pose = data['poses'][frame]
+                # pose = data['pose_new'][frame]
 
                 # l_index1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[67:68]])
                 # l_middle1 = np.concatenate([np.array([0]),np.array([0]),pose_temp[68:69]])
@@ -422,8 +423,8 @@ class Import_SMPL_easymocap(Operator, ImportHelper):
                 #tentaiva de incluir tratamento para que rodrigues tb cuidasse da mao
                 # pose = np.concatenate([pose_temp[0:66],pose_temp[78:],l_hand,r_hand]) 
 
-                # print('shape: ',data['poses'][frame].shape[0], '- frame:',frame)
-                print('shape: ',data['pose_new'][frame].shape[0], '- frame:',frame)
+                print('shape: ',data['poses'][frame].shape[0], '- frame:',frame)
+                # print('shape: ',data['pose_new'][frame].shape[0], '- frame:',frame)
 
                 apply_trans_pose_shape(Vector(trans), pose, shape, ob,
                                     arm_ob, obname, scene, cam_ob, frame)

@@ -84,6 +84,7 @@ class Test_PT_Panel(bpy.types.Panel):
         # layout.label(text='y: '+ '%.2f' %sk_value_prop.sk_root_rot_y)
         # layout.label(text='z: '+ '%.2f' %sk_value_prop.sk_root_rot_z)
 
+        """
         col.label(text='Original angles')
         col.label(text='x: '+ '%.2f' %sk_value_prop.sk_root_rot_x)
         col.label(text='y: '+ '%.2f' %sk_value_prop.sk_root_rot_y)
@@ -95,10 +96,11 @@ class Test_PT_Panel(bpy.types.Panel):
         col.label(text='x: '+ '%.2f' %sk_value_prop.sk_root_actual_rot_x)
         col.label(text='y: '+ '%.2f' %sk_value_prop.sk_root_actual_rot_y)
         col.label(text='z: '+ '%.2f' %sk_value_prop.sk_root_actual_rot_z)
+        """
 
 
         
-
+"""
 class Modify_PT_Panel(bpy.types.Panel):
     bl_idname = "MODIFY_PT_Panel"
     bl_label = "Modify Data"
@@ -138,7 +140,7 @@ class Modify_PT_Panel(bpy.types.Panel):
         row = layout.row()
         row.operator('mocap.compensate_rotation', text='Rotate')
 
-
+"""
 
 class Install_PT_Panel(bpy.types.Panel):
     bl_idname = "INSTALL_PT_Panel"
@@ -156,6 +158,7 @@ class Install_PT_Panel(bpy.types.Panel):
         row = layout.row()
         row.operator('install.joblib_package', text="Install Joblib (Vibe requirement)")
 
+"""
 class Debug_PT_Panel(bpy.types.Panel):
     bl_idname = "Debug_PT_Panel"
     bl_label = "Debug Panel"
@@ -194,7 +197,7 @@ class Debug_PT_Panel(bpy.types.Panel):
         row.prop(sk_value_prop, "sk_leg_mulitplier", text="Leg: ")
         row = layout.row()
         row.prop(sk_value_prop, "sk_foot_mulitplier", text="Foot: ")
-
+"""
 
 from bpy.props import (StringProperty,
                        BoolProperty,
@@ -209,7 +212,6 @@ from bpy.types import (Panel,
                        AddonPreferences,
                        PropertyGroup,
                        )
-
 
 
 class MySettings(PropertyGroup):
@@ -228,7 +230,7 @@ class MySettings(PropertyGroup):
     sk_root_actual_rot_y: FloatProperty(name="Actual rotation y", description="Actual rotation of root bone y")
     sk_root_actual_rot_z: FloatProperty(name="Actual rotation z", description="Actual rotation of root bone z")
 
-    sk_raw_bool: BoolProperty(name='raw_bool', default=False)
+    sk_raw_bool: BoolProperty(name='raw_bool', default=True)
     sk_debug_bool: BoolProperty(name='debug_bool', default=False)
     # sk_reload_skeleton_bool: BoolProperty(name='Reload_skeleton_bool', default=False)
     sk_constraint_limit_rotation_bool: BoolProperty(name='Limit_rotation_bool', default=True)
