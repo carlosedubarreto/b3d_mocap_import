@@ -60,6 +60,9 @@ class Test_PT_Panel(bpy.types.Panel):
         layout.prop(sk_value_prop, "sk_value", text="SK Mult")
         row = layout.row()
         row.operator('mocap.import_frankmocap', text="SK Import FrankMocap")
+        row = layout.row()
+        row.operator('mocap.import_frankmocap_alter', text="SK Import FrankMocap Alter")
+
 
         layout.row().separator()
         row = layout.row()

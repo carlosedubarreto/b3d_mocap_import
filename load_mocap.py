@@ -1071,13 +1071,546 @@ class Import_Data_frankmocap(Operator, ImportHelper):
             print("frame: ",item)
             for limb in range(len(nppic['pred_output_list'][0]['pred_body_joints_img'])):
         #        print("limb: ",limb)
-                bpy.data.objects["Point."+str(1000+limb)[1:]].location[z]=nppic['pred_output_list'][0]['pred_body_joints_img'][limb][x]/multi
-                bpy.data.objects["Point."+str(1000+limb)[1:]].location[y]=nppic['pred_output_list'][0]['pred_body_joints_img'][limb][y]/multi
-                bpy.data.objects["Point."+str(1000+limb)[1:]].location[x]=nppic['pred_output_list'][0]['pred_body_joints_img'][limb][z]/multi
+                bpy.data.objects["Point."+str(1000+limb)[1:]].location[x]=nppic['pred_output_list'][0]['pred_body_joints_img'][limb][x]/multi
+                bpy.data.objects["Point."+str(1000+limb)[1:]].location[y]=nppic['pred_output_list'][0]['pred_body_joints_img'][limb][z]/multi
+                bpy.data.objects["Point."+str(1000+limb)[1:]].location[z]=nppic['pred_output_list'][0]['pred_body_joints_img'][limb][y]/multi
                 bpy.data.objects["Point."+str(1000+limb)[1:]].keyframe_insert(data_path="location", frame=item)
 
 
         len(nppic['pred_output_list'][0]['pred_body_joints_img'])
+
+
+
+        import bpy
+
+
+        #===========
+        # selectign Scene Collection
+        scene_collection = bpy.context.view_layer.layer_collection
+        bpy.context.view_layer.active_layer_collection = scene_collection
+
+        bones = [['Bone','Root'],
+                ['Bone.001','Spine'],
+                ['Bone.002','Neck'],
+                ['Bone.003','Face'],
+                ['Bone.004','Arm_L'],
+                ['Bone.005','Forearm_L'],
+                ['Bone.006','Arm_R'],
+                ['Bone.007','Forearm_R'],
+                ['Bone.008','Thigh_L'],
+                ['Bone.009','Leg_L'],
+                ['Bone.010','Foot_L'],
+                ['Bone.011','Thigh_R'],
+                ['Bone.012','Leg_R'],
+                ['Bone.013','Foot_R']
+                ]
+
+        create_bones(bones)
+
+        unit = size_ref_bone('Point.001','Point.008','Point.034')
+        unit = unit*multiplier
+
+        root_sz    =unit/10
+        spine_sz   =unit*3.5
+        neck_sz    =unit
+        face_sz    =unit
+        thigh_sz    =unit*3
+        leg_sz     =unit*2.5
+        foot_sz    =unit #inclinado 45 graud pra frente
+        arm_sz     =unit*1.5
+        forearm_sz =unit*1.5
+
+        size_of_bones(root_sz, spine_sz, neck_sz, face_sz, thigh_sz, leg_sz, foot_sz, arm_sz, forearm_sz)
+
+        constraints = [
+            ['Root', 'COPY_LOCATION', 'Point.039'],
+            ['Root', 'DAMPED_TRACK', 'Point.037'],
+            ['Root', 'DAMPED_TRACK', 'Point.027','TRACK_X'],
+            ['Spine', 'DAMPED_TRACK', 'Point.037'],
+            ['Spine', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Spine', 'LIMIT_ROTATION', 'X', True, -0.349066, 0.349066],
+            ['Spine', 'LIMIT_ROTATION', 'Y', True, -0.698132, 0.698132],
+            ['Spine', 'LIMIT_ROTATION', 'Z', True, -0.174533, 0.174533],
+            ['Neck', 'DAMPED_TRACK', 'Point.042'],
+            ['Neck', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Neck', 'LIMIT_ROTATION', 'X', True, -0.174533, 1.0472],
+            ['Neck', 'LIMIT_ROTATION', 'Y', True, -0.523599, 0.523599],
+            ['Neck', 'LIMIT_ROTATION', 'Z', True, -0.349066, 0.349066],
+            ['Face', 'DAMPED_TRACK', 'Point.044'],
+            ['Face', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Face', 'LIMIT_ROTATION', 'X', True, -0.174533, 0.872665],
+            ['Face', 'LIMIT_ROTATION', 'Y', True, 0, 0],
+            ['Face', 'LIMIT_ROTATION', 'Z', True, -0.523599, 0.523599],
+            ['Arm_L', 'DAMPED_TRACK', 'Point.032'],
+            ['Forearm_L', 'DAMPED_TRACK', 'Point.031'],
+            ['Forearm_L', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Forearm_L', 'LIMIT_ROTATION', 'X', True, 0, 0],
+            ['Forearm_L', 'LIMIT_ROTATION', 'Y', True, 0, 0],
+            ['Forearm_L', 'LIMIT_ROTATION', 'Z', True, -2.53073, -0.191986],
+            ['Arm_R', 'DAMPED_TRACK', 'Point.035'],
+            ['Forearm_R', 'DAMPED_TRACK', 'Point.036'],
+            ['Forearm_R', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Forearm_R', 'LIMIT_ROTATION', 'X', False  ],
+            ['Forearm_R', 'LIMIT_ROTATION', 'Y', False  ],
+            ['Forearm_R', 'LIMIT_ROTATION', 'Z', True, 0.191986, 2.53073],
+            ['Thigh_L', 'DAMPED_TRACK', 'Point.026'],
+            ['Thigh_L', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Thigh_L', 'LIMIT_ROTATION', 'X', True, -1.76278, 1.3439],
+            ['Thigh_L', 'LIMIT_ROTATION', 'Y', True, 0, 0],
+            ['Thigh_L', 'LIMIT_ROTATION', 'Z', True, -0.785398, 0.174533],
+            ['Leg_L', 'DAMPED_TRACK', 'Point.025'],
+            ['Leg_L', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Leg_L', 'LIMIT_ROTATION', 'X', True, 0.0698132, 2.0944],
+            ['Leg_L', 'LIMIT_ROTATION', 'Y', True, 0, 0],
+            ['Leg_L', 'LIMIT_ROTATION', 'Z', True, 0, 0],
+            ['Foot_L', 'DAMPED_TRACK', 'Point.022'],
+            ['Foot_L', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Foot_L', 'LIMIT_ROTATION', 'X', True, -0.523599, 0.523599],
+            ['Foot_L', 'LIMIT_ROTATION', 'Y', True, 0, 0],
+            ['Foot_L', 'LIMIT_ROTATION', 'Z', True, 0, 0],
+            ['Thigh_R', 'DAMPED_TRACK', 'Point.029'],
+            ['Thigh_R', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Thigh_R', 'LIMIT_ROTATION', 'X', True, -1.76278, 1.3439],
+            ['Thigh_R', 'LIMIT_ROTATION', 'Y', True, 0, 0],
+            ['Thigh_R', 'LIMIT_ROTATION', 'Z', True, -0.174533, 0.785398],
+            ['Leg_R', 'DAMPED_TRACK', 'Point.030'],
+            ['Leg_R', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Leg_R', 'LIMIT_ROTATION', 'X', True, 0.0698132, 2.0944],
+            ['Leg_R', 'LIMIT_ROTATION', 'Y', True, 0, 0],
+            ['Leg_R', 'LIMIT_ROTATION', 'Z', True, 0, 0],
+            ['Foot_R', 'DAMPED_TRACK', 'Point.019'],
+            ['Foot_R', 'LIMIT_ROTATION', 'LOCAL'],
+            ['Foot_R', 'LIMIT_ROTATION', 'X', True, -0.523599, 0.523599],
+            ['Foot_R', 'LIMIT_ROTATION', 'Y', True, 0, 0],
+            ['Foot_R', 'LIMIT_ROTATION', 'Z', True, 0, 0]
+        ]
+
+        add_constraints_track_X(constraints)
+
+        print(len(s_list))
+        bpy.context.scene.frame_end = len(s_list)
+
+        bpy.ops.nla.bake(frame_start=1, frame_end=len(s_list), visual_keying=True, clear_constraints=True, clear_parents=True, bake_types={'POSE'})
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+
+
+        #apagar collection points criada
+        collection = bpy.data.collections.get('Point')
+        #
+        for obj in collection.objects:
+            bpy.data.objects.remove(obj, do_unlink=True)
+        bpy.data.collections.remove(collection)
+
+
+        sk_value_prop = context.scene.sk_value_prop
+        if raw_bool == True:
+            print('raw_bool True - ',raw_bool)
+
+            x_original, y_original, z_original = helper_functions.get_rotations()
+            sk_value_prop.sk_root_rot_x = math.degrees(x_original)
+            sk_value_prop.sk_root_rot_y = math.degrees(y_original)
+            sk_value_prop.sk_root_rot_z = math.degrees(z_original)
+
+            #in this case both original and actual is the same, because there was no alteration on the angle
+            x_actual_deg = math.degrees(x_original)
+            y_actual_deg = math.degrees(y_original)
+            z_actual_deg = math.degrees(z_original)
+
+            sk_value_prop.sk_root_actual_rot_x = x_actual_deg
+            sk_value_prop.sk_root_actual_rot_y = y_actual_deg
+            sk_value_prop.sk_root_actual_rot_z = z_actual_deg
+        else:
+            print('raw_bool False - ',raw_bool)
+            x_deg, y_deg, z_deg = helper_functions.anim_to_origin()
+            #take the information of the rotation to the panel
+            print('result x: ',x_deg)
+            print('result y: ',y_deg)
+            print('result z: ',z_deg)
+            sk_value_prop.sk_root_rot_x = x_deg
+            sk_value_prop.sk_root_rot_y = y_deg
+            sk_value_prop.sk_root_rot_z = z_deg
+
+
+
+        return{'FINISHED'}
+
+class Import_Data_frankmocap_alter(Operator, ImportHelper):
+    bl_idname = "mocap.import_frankmocap_alter"
+    bl_label = "Import data from Frankmocap Alternative"
+    bl_description = "Import FrankMocap if the other option doesnt work"
+
+
+    filename_ext = ".pkl"
+
+    filter_glob: StringProperty(
+        default="*.pkl",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )
+
+    def execute(self,context):
+
+        #"""
+        #Frnakmocap
+        #==========================
+        
+        import math
+        import bpy
+        import os
+        import pickle
+        import numpy as np
+        from bpy import context
+        import joblib
+
+        multiplier = context.scene.sk_value_prop.sk_value
+        raw_bool = context.scene.sk_value_prop.sk_raw_bool
+
+        def middle_point(p1,p2,p_middle):
+            bpy.ops.object.select_all(action='DESELECT')
+            bpy.data.objects[p1].select_set(True)
+            bpy.data.objects[p2].select_set(True)
+            bpy.context.view_layer.objects.active = bpy.data.objects[p2]
+            obs = bpy.context.selected_objects
+            n = len(obs)
+            #    print('n: ',n)
+            assert(n)
+            #scene.cursor.location = sum([o.matrix_world.translation for o in obs], Vector()) / n
+            bpy.data.objects[p_middle].location = sum([o.matrix_world.translation for o in obs], Vector()) / n
+
+        def create_dots(name, amount):
+            #remove Collection
+            if bpy.data.collections.find(name) >= 0:
+                collection = bpy.data.collections.get(name)
+                #
+                for obj in collection.objects:
+                    bpy.data.objects.remove(obj, do_unlink=True)
+                bpy.data.collections.remove(collection)
+            #cria os pontos nuima collection chamada Points
+            #=====================================================
+            collection = bpy.data.collections.new(name)
+            bpy.context.scene.collection.children.link(collection)
+            #
+            layer_collection = bpy.context.view_layer.layer_collection.children[collection.name]
+            bpy.context.view_layer.active_layer_collection = layer_collection
+            #
+            for point in range(amount):
+                bpy.ops.mesh.primitive_plane_add(enter_editmode=True, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+                bpy.ops.mesh.merge(type='CENTER')
+                bpy.ops.object.editmode_toggle()
+                bpy.context.active_object.name = name+'.'+str(1000+point)[1:]
+            #=====================================================
+
+        def distance(point1, point2) -> float:
+            #Calculate distance between two points in 3D.
+            #    return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
+            return math.sqrt((point2.location[0] - point1.location[0]) ** 2 + (point2.location[1] - point1.location[1]) ** 2 + (point2.location[2] - point1.location[2]) ** 2)
+
+        def size_bone(point_name1, point_name2, bone):
+            p1 = bpy.data.objects[point_name1]
+            p2 = bpy.data.objects[point_name2]
+            #edit bones
+            if bpy.context.active_object.mode == 'EDIT':
+                bpy.context.object.data.edit_bones[bone].length= distance(p1,p2)
+            else:
+                bpy.ops.object.editmode_toggle()
+                bpy.context.object.data.edit_bones[bone].length= distance(p1,p2)
+            bpy.ops.object.editmode_toggle()
+
+        def create_bones(bones_list):
+            #===================================
+            #creating bones
+            #====================================
+
+            bpy.ops.object.armature_add(enter_editmode=True, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1)) #cria armature e primeiro bone
+            #bpy.ops.object.editmode_toggle()
+            #bpy.data.armatures['Armature'].edit_bones.active = bpy.context.object.data.edit_bones['Bone']
+
+
+            obs = []
+            for ob in bpy.context.scene.objects:
+                if ob.type == 'ARMATURE':
+                    obs.append(ob)
+            #obs
+
+
+            bpy.ops.armature.select_all(action='DESELECT')
+            obs[len(obs)-1].data.edit_bones['Bone'].select_tail=True
+
+
+            
+            bpy.ops.armature.bone_primitive_add()#Spine
+            #Neck
+            bpy.ops.armature.extrude_move(ARMATURE_OT_extrude={"forked":False}, TRANSFORM_OT_translate={"value":(0.0, 0.0, 0.1)})
+            #Face
+            bpy.ops.armature.extrude_move(ARMATURE_OT_extrude={"forked":False}, TRANSFORM_OT_translate={"value":(0.0, 0.0, 0.1)})
+
+
+            bpy.ops.armature.bone_primitive_add()#Arm_L
+            #Forearm_L
+            bpy.ops.armature.extrude_move(ARMATURE_OT_extrude={"forked":False}, TRANSFORM_OT_translate={"value":(0.0, 0.0, 0.1)})
+            
+            bpy.ops.armature.bone_primitive_add()#Arm_R
+            #Forearm_R
+            bpy.ops.armature.extrude_move(ARMATURE_OT_extrude={"forked":False}, TRANSFORM_OT_translate={"value":(0.0, 0.0, 0.1)})
+            
+            bpy.ops.armature.bone_primitive_add()#Thigh_L
+            #Leg_L
+            #Foot_L
+            bpy.ops.armature.extrude_move(ARMATURE_OT_extrude={"forked":False}, TRANSFORM_OT_translate={"value":(0.0, 0.0, 0.1)})
+            bpy.ops.armature.extrude_move(ARMATURE_OT_extrude={"forked":False}, TRANSFORM_OT_translate={"value":(0.0, 0.0, 0.1)})
+            
+            bpy.ops.armature.bone_primitive_add()#Thigh_R
+            #Leg_R
+            #Foot_R
+            bpy.ops.armature.extrude_move(ARMATURE_OT_extrude={"forked":False}, TRANSFORM_OT_translate={"value":(0.0, 0.0, 0.1)})
+            bpy.ops.armature.extrude_move(ARMATURE_OT_extrude={"forked":False}, TRANSFORM_OT_translate={"value":(0.0, 0.0, 0.1)})
+        
+            for i in range(len(bones_list)):
+                obs[len(obs)-1].data.edit_bones[bones_list[i][0]].name = bones_list[i][1]
+
+
+            #Hierarquia
+            bpy.context.object.data.edit_bones["Spine"].parent = bpy.context.object.data.edit_bones["Root"]
+            bpy.context.object.data.edit_bones["Arm_L"].parent = bpy.context.object.data.edit_bones["Spine"]
+            bpy.context.object.data.edit_bones["Arm_R"].parent = bpy.context.object.data.edit_bones["Spine"]
+            bpy.context.object.data.edit_bones["Thigh_L"].parent = bpy.context.object.data.edit_bones["Root"]
+            bpy.context.object.data.edit_bones["Thigh_R"].parent = bpy.context.object.data.edit_bones["Root"]
+
+            bpy.ops.object.editmode_toggle()
+
+        def distance(point1, point2) -> float: 
+            #Calculate distance between two points in 3D.
+            #return math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2 + (point2[2] - point1[2]) ** 2)
+            return math.sqrt((point2.location[0] - point1.location[0]) ** 2 + (point2.location[1] - point1.location[1]) ** 2 + (point2.location[2] - point1.location[2]) ** 2)
+
+        def size_bone(point_name1, point_name2, bone):
+            p1 = bpy.data.objects[point_name1]
+            p2 = bpy.data.objects[point_name2]
+            #edit bones
+            if bpy.context.active_object.mode == 'EDIT':
+                bpy.context.object.data.edit_bones[bone].length= distance(p1,p2)
+            else:
+                bpy.ops.object.editmode_toggle()
+                bpy.context.object.data.edit_bones[bone].length= distance(p1,p2)
+            bpy.ops.object.editmode_toggle()
+
+        def size_ref_bone(p1,p2,p_final):
+            from mathutils import Vector
+            import bpy
+
+            ## size of the reference bone (spine)
+            bpy.ops.object.select_all(action='DESELECT')
+            bpy.data.objects[p1].select_set(True)
+            bpy.data.objects[p2].select_set(True)
+            # bpy.context.view_layer.objects.active = bpy.data.objects['Point.034']
+            bpy.context.view_layer.objects.active = bpy.data.objects[p2]
+            obs = bpy.context.selected_objects
+            n = len(obs)
+            #    print('n: ',n)
+            assert(n)
+            #scene.cursor.location = sum([o.matrix_world.translation for o in obs], Vector()) / n
+            #bpy.data.objects[p_middle].location = sum([o.matrix_world.translation for o in obs], Vector()) / n
+
+            x_subtract = abs(obs[0].matrix_world.translation.x - obs[1].matrix_world.translation.x)
+            y_subtract = abs(obs[0].matrix_world.translation.y - obs[1].matrix_world.translation.y)
+            z_subtract = abs(obs[0].matrix_world.translation.z - obs[1].matrix_world.translation.z)
+
+            max(x_subtract, y_subtract, z_subtract) #maior das medidas
+            unit_def = max(x_subtract, y_subtract, z_subtract)/3
+            #end of size of reference bone Spine
+            return unit_def
+
+        def size_of_bones(root_size, spine_size, neck_size, face_size, thigh_size, leg_size, foot_size, arm_size, forearm_size):
+            #==========================================
+            #selecting and making the armature Active
+            #selecionando armature
+            #==========================================
+            bpy.ops.object.select_all(action='DESELECT')
+            #bpy.ops.armature.select_all(action='DESELECT')
+
+            obs = []
+            for ob in bpy.context.scene.objects:
+                if ob.type == 'ARMATURE':
+                    obs.append(ob)
+            #obs
+
+            armature = obs[len(obs)-1].name
+
+            #bpy.data.objects[armature].select_set(True)
+            obs[len(obs)-1].select_set(True)
+            view_layer = bpy.context.view_layer
+            #Armature_obj = bpy.context.scene.objects[armature]
+            Armature_obj = obs[len(obs)-1]
+            view_layer.objects.active = Armature_obj
+
+            #converting to euler rotation
+            order = 'XYZ'
+            context = bpy.context
+            rig_object = context.active_object
+            for pb in rig_object.pose.bones:
+                pb.rotation_mode = order
+
+
+            bpy.ops.object.editmode_toggle()
+
+            #changing location
+            #resetting
+            bpy.context.object.data.edit_bones["Spine"].head.xy=0
+            bpy.context.object.data.edit_bones["Neck"].head.xy=0
+            bpy.context.object.data.edit_bones["Face"].head.xy=0
+
+            bpy.context.object.data.edit_bones["Arm_L"].head.xy=0
+            bpy.context.object.data.edit_bones["Forearm_L"].head.xy=0
+
+            bpy.context.object.data.edit_bones["Arm_R"].head.xy=0
+            bpy.context.object.data.edit_bones["Forearm_R"].head.xy=0
+
+            bpy.context.object.data.edit_bones["Thigh_L"].head.xy=0
+            bpy.context.object.data.edit_bones["Leg_L"].head.xy=0
+            bpy.context.object.data.edit_bones["Foot_L"].head.xy=0
+
+            bpy.context.object.data.edit_bones["Thigh_R"].head.xy=0
+            bpy.context.object.data.edit_bones["Leg_R"].head.xy=0
+            bpy.context.object.data.edit_bones["Foot_R"].head.xy=0
+            #tail
+            bpy.context.object.data.edit_bones["Face"].tail.xy=0
+            bpy.context.object.data.edit_bones["Neck"].tail.xy=0
+            bpy.context.object.data.edit_bones["Forearm_L"].tail.xy=0
+            bpy.context.object.data.edit_bones["Forearm_R"].tail.xy=0
+            bpy.context.object.data.edit_bones["Foot_L"].tail.xy=0
+            bpy.context.object.data.edit_bones["Foot_R"].tail.xy=0
+
+
+
+
+            bpy.context.object.data.edit_bones["Root"].length = root_size
+
+            bpy.context.object.data.edit_bones["Spine"].head.z = unit/2
+            bpy.context.object.data.edit_bones["Spine"].tail.z = spine_size
+
+            bpy.context.object.data.edit_bones["Neck"].tail.z =  spine_size + neck_size
+            bpy.context.object.data.edit_bones["Neck"].tail.y = neck_size/3
+            bpy.context.object.data.edit_bones["Face"].tail.z = spine_size + neck_size
+            bpy.context.object.data.edit_bones["Face"].tail.y = face_size*-1
+
+            bpy.context.object.data.edit_bones["Arm_L"].head.z= spine_size
+            bpy.context.object.data.edit_bones["Arm_L"].head.x= unit*3/4
+            bpy.context.object.data.edit_bones["Forearm_L"].head.z=  spine_size
+            bpy.context.object.data.edit_bones["Forearm_L"].head.x= unit + arm_size
+            bpy.context.object.data.edit_bones["Forearm_L"].tail.z= spine_size
+            bpy.context.object.data.edit_bones["Forearm_L"].tail.x= unit + arm_size + forearm_size
+
+            bpy.context.object.data.edit_bones["Arm_R"].head.z= spine_size
+            bpy.context.object.data.edit_bones["Arm_R"].head.x= (unit*3/4)*-1
+            bpy.context.object.data.edit_bones["Forearm_R"].head.z= spine_size
+            bpy.context.object.data.edit_bones["Forearm_R"].head.x= (unit + arm_size) *-1
+            bpy.context.object.data.edit_bones["Forearm_R"].tail.z= spine_size
+            bpy.context.object.data.edit_bones["Forearm_R"].tail.x= (unit + arm_size + forearm_size) *-1
+
+            bpy.context.object.data.edit_bones["Thigh_L"].head.x= unit*3/4
+            bpy.context.object.data.edit_bones["Thigh_L"].head.z= (unit/5)*-1
+            bpy.context.object.data.edit_bones["Leg_L"].head.x= unit*3/4
+            bpy.context.object.data.edit_bones["Leg_L"].head.z= (unit/5 + thigh_size)*-1
+            bpy.context.object.data.edit_bones["Foot_L"].head.x= unit*3/4
+            bpy.context.object.data.edit_bones["Foot_L"].head.z= (unit/5 + thigh_size + leg_size)*-1
+            bpy.context.object.data.edit_bones["Foot_L"].tail.x= unit*3/4
+            bpy.context.object.data.edit_bones["Foot_L"].tail.z= (unit/5 + thigh_size + leg_size + foot_size/2)*-1
+            bpy.context.object.data.edit_bones["Foot_L"].tail.y= foot_sz/2*-1
+
+            bpy.context.object.data.edit_bones["Thigh_R"].head.x= unit*3/4*-1
+            bpy.context.object.data.edit_bones["Thigh_R"].head.z= (unit/5)*-1
+            bpy.context.object.data.edit_bones["Leg_R"].head.x= unit*3/4*-1
+            bpy.context.object.data.edit_bones["Leg_R"].head.z= (unit/5 + thigh_size)*-1
+            bpy.context.object.data.edit_bones["Foot_R"].head.x= unit*3/4*-1
+            bpy.context.object.data.edit_bones["Foot_R"].head.z= (unit/5 + thigh_size + leg_size)*-1
+            bpy.context.object.data.edit_bones["Foot_R"].tail.x= unit*3/4*-1
+            bpy.context.object.data.edit_bones["Foot_R"].tail.z= (unit/5 + thigh_size + leg_size + foot_size/2)*-1
+            bpy.context.object.data.edit_bones["Foot_R"].tail.y= foot_size/2*-1
+
+            bpy.ops.object.editmode_toggle()
+
+        def add_constraints_track_X(constraints):
+            obs = []
+            for ob in bpy.context.scene.objects:
+                if ob.type == 'ARMATURE':
+                    obs.append(ob)
+            #obs
+
+            bpy.ops.object.mode_set(mode='POSE')
+
+            for i in range(len(constraints)):
+                print('processar: ',constraints[i])
+                if  constraints[i][1] == 'COPY_LOCATION' or constraints[i][1] == 'DAMPED_TRACK':
+            #        print('in 1 j: ',j,' - name: ',constraints[i][0],' constraint: ',constraints[i][1])
+                    obs[len(obs)-1].data.bones.active = obs[len(obs)-1].pose.bones[constraints[i][0]].bone
+                    obs[len(obs)-1].pose.bones[constraints[i][0]].bone.select = True
+                    #
+                    bpy.ops.pose.constraint_add(type=constraints[i][1])
+                    qtd_constraint = len(bpy.context.object.pose.bones[constraints[i][0]].constraints)
+                    bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].target = bpy.data.objects[constraints[i][2]]
+                    if constraints[i][1] == 'DAMPED_TRACK' and len(constraints[i])==4:
+                        bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].track_axis = constraints[i][3]
+                    #
+                if constraints[i][1] == 'LIMIT_ROTATION':
+                    qtd_constraint = len(bpy.context.object.pose.bones[constraints[i][0]].constraints)
+                    if constraints[i][2] == 'LOCAL':
+                        bpy.ops.pose.constraint_add(type=constraints[i][1])
+                        qtd_constraint = len(bpy.context.object.pose.bones[constraints[i][0]].constraints)
+                        bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].owner_space = constraints[i][2]
+                    if constraints[i][2] == 'X':
+                        if constraints[i][3] == True:
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].use_limit_x = constraints[i][3]
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].min_x  = constraints[i][4]
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].max_x = constraints[i][5]
+                    if constraints[i][2] == 'Y':
+                        if constraints[i][3] == True:
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].use_limit_y = constraints[i][3]
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].min_y  = constraints[i][4]
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].max_y = constraints[i][5]
+                    if constraints[i][2] == 'Z':
+                        if constraints[i][3] == True:
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].use_limit_z = constraints[i][3]
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].min_z  = constraints[i][4]
+                            bpy.context.object.pose.bones[constraints[i][0]].constraints[qtd_constraint-1].max_z = constraints[i][5]
+
+        create_dots('Point',49)
+
+        # pkl_path=r'C:\MOCAP\frankmocap\mocap_output\mocap\temp'
+        pkl_path = os.path.dirname(self.filepath)
+        list_dir = os.listdir(pkl_path)
+        s_list = sorted(list_dir)
+
+        len(s_list)
+
+        x=0
+        y=1
+        z=2
+        multi=100
+        #armature = 'Armature'
+
+
+        #exemplo
+        file = open(pkl_path+ os.sep +s_list[0],'rb')
+
+        pic = pickle.load(file)
+        file.close()
+
+        nppic = np.load(pkl_path+ os.sep +s_list[0], allow_pickle=True)
+
+        for item in range(len(s_list)-1):
+            nppic = np.load(pkl_path+ os.sep +s_list[item], allow_pickle=True)
+        #    nppic['pred_output_list'][0]['pred_body_joints_img'] #todos os limbs
+            print("frame: ",item)
+            for limb in range(len(nppic['pred_output_list'][0]['pred_joints_img'])):
+        #        print("limb: ",limb)
+                bpy.data.objects["Point."+str(1000+limb)[1:]].location[x]=nppic['pred_output_list'][0]['pred_joints_img'][limb][x]/multi
+                bpy.data.objects["Point."+str(1000+limb)[1:]].location[y]=nppic['pred_output_list'][0]['pred_joints_img'][limb][z]/multi
+                bpy.data.objects["Point."+str(1000+limb)[1:]].location[z]=nppic['pred_output_list'][0]['pred_joints_img'][limb][y]/multi
+                bpy.data.objects["Point."+str(1000+limb)[1:]].keyframe_insert(data_path="location", frame=item)
+
+
+        len(nppic['pred_output_list'][0]['pred_joints_img'])
 
 
 
