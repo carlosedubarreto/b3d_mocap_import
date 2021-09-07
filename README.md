@@ -35,8 +35,9 @@ explained in this tutorial
 
 --------------------------------------------------------------
 
-Version Beta 0.71 
-- import and export of data to audio2face
+Version Beta 0.75 
+- ui rework
+- mediapipe improvement
 
 
 PS.: To use VIBE you must install a python package inside Blender.
