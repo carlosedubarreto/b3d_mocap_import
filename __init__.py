@@ -11,20 +11,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.73
-# - added a button for alternative frankmocap PKL file
-# - fix orientation for imports of frankmocap
+# beta 0.74
+# - Update Mediapipe Body pose estimation
 
 bl_info = {
-    "name" : "MOCAP Pose Estimation Data Import",
+    "name" : "MOCAP Import",
     "author" : "Carlos Barreto",
-    "description" : "",
+    "description" : "Addon to import data from Easymocap, Frankmocap, Vibe and Google Mediapipe",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 73),
-    "location" : "View3D",
+    "version" : (0, 0, 75),
+    "location" : "3dView > Sidebar(N panel)",
     "warning" : "",
-    "category" : "Generic"
+    "category" : "Animation"
 }
+global VERSION
+VERSION = 'b 0.75'
+
+
+
 import bpy
 
 from bpy.props import (#StringProperty,
@@ -39,11 +43,17 @@ from bpy.props import (#StringProperty,
 from . load_mocap import Import_Data_easymocap, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_frankmocap_alter,Import_Data_vibe,Mediapipe_Pose_estimation, \
                         Install_Mediapipe,Install_Joblib,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation,Smooth_Bone, \
                             Reload_sk_easymocap, Import_SMPL_easymocap,Path_SMPL_FBX_File,Audio2face_Import,Audio2face_Export, Audio2face_Import_to_NLA, Audio2face_delete_action_shapekey_nla, Delete_unused_NLA_SK_tracks
-from . test_panel import Test_PT_Panel, MySettings, Install_PT_Panel#, Modify_PT_Panel,Debug_PT_Panel
+from . panel import Test_PT_Panel, MySettings#, Install_PT_Panel#, Modify_PT_Panel,Debug_PT_Panel
+from . mediapipe_new import *
 
 classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_frankmocap_alter,Import_Data_vibe,Mediapipe_Pose_estimation,
-            Install_Mediapipe,Install_Joblib,MySettings,Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,
-            Compensate_Rotation,Smooth_Bone, Reload_sk_easymocap, Import_SMPL_easymocap, Path_SMPL_FBX_File,Audio2face_Import,Audio2face_Export, Audio2face_Import_to_NLA, Audio2face_delete_action_shapekey_nla, Delete_unused_NLA_SK_tracks)#,Modify_PT_Panel,Debug_PT_Panel
+            Install_Mediapipe,Install_Joblib,MySettings,#Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,
+            Compensate_Rotation,Smooth_Bone, Reload_sk_easymocap, Import_SMPL_easymocap, 
+            Path_SMPL_FBX_File,Audio2face_Import,Audio2face_Export, 
+            Audio2face_Import_to_NLA, Audio2face_delete_action_shapekey_nla, 
+            Delete_unused_NLA_SK_tracks,
+            MP_preview,Transfer_Angles,update_bone_size,Hand_mocap
+            )#,Modify_PT_Panel,Debug_PT_Panel
 
 # register, unregister = bpy.utils.register_classes_factory(classes)
 def register():
@@ -52,6 +62,10 @@ def register():
         register_class(cls)
     # bpy.types.Scene.my_tool = PointerProperty(type=MySettings)
     bpy.types.Scene.sk_value_prop = PointerProperty(type=MySettings)
+    bpy.types.Scene.expand_audio2face = bpy.props.BoolProperty(default=True)
+    bpy.types.Scene.mediapipe = bpy.props.BoolProperty(default=True)
+    bpy.types.Scene.older_tools = bpy.props.BoolProperty(default=False)
+    bpy.types.Scene.install_py = bpy.props.BoolProperty(default=False)
 
 def unregister():
     from bpy.utils import unregister_class

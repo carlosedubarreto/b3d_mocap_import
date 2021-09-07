@@ -3436,3 +3436,4 @@ class Delete_unused_NLA_SK_tracks(Operator):
                 if len(track.strips) ==0:
                     adsk.nla_tracks.remove(track)
         return{'FINISHED'}
+
