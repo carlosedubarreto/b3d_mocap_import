@@ -209,6 +209,7 @@ class Test_PT_Panel(bpy.types.Panel):
 
             # row = layout.row()
             row = rowb.column(align=True)
+            row.operator('install.cv2_package', text="Install OpenCV (cv2) Package")
             row.operator('install.mediapipe_package', text="Install Mediapipe Package")
             # row = layout.row()
             row.operator('install.joblib_package', text="Install Joblib (Vibe requirement)")

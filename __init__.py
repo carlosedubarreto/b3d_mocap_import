@@ -11,21 +11,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# beta 0.74
-# - Update Mediapipe Body pose estimation
+# beta 0.76
+# - add installation for Opencv2
 
 bl_info = {
     "name" : "MOCAP Import",
     "author" : "Carlos Barreto",
     "description" : "Addon to import data from Easymocap, Frankmocap, Vibe and Google Mediapipe",
     "blender" : (2, 90, 0),
-    "version" : (0, 0, 75),
+    "version" : (0, 0, 76),
     "location" : "3dView > Sidebar(N panel)",
     "warning" : "",
     "category" : "Animation"
 }
 global VERSION
-VERSION = 'b 0.75'
+VERSION = 'b 0.76'
 
 
 
@@ -40,14 +40,12 @@ from bpy.props import (#StringProperty,
                        PointerProperty,
                        )
 
-from . load_mocap import Import_Data_easymocap, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_frankmocap_alter,Import_Data_vibe,Mediapipe_Pose_estimation, \
-                        Install_Mediapipe,Install_Joblib,Convert_axis,Reset_location,Reset_rotation,Foot_high,Compensate_Rotation,Smooth_Bone, \
-                            Reload_sk_easymocap, Import_SMPL_easymocap,Path_SMPL_FBX_File,Audio2face_Import,Audio2face_Export, Audio2face_Import_to_NLA, Audio2face_delete_action_shapekey_nla, Delete_unused_NLA_SK_tracks
+from . load_mocap import *
 from . panel import Test_PT_Panel, MySettings#, Install_PT_Panel#, Modify_PT_Panel,Debug_PT_Panel
 from . mediapipe_new import *
 
 classes = (Import_Data_easymocap, Test_PT_Panel, OT_TestOpenFilebrowser,Import_Data_frankmocap,Import_Data_frankmocap_alter,Import_Data_vibe,Mediapipe_Pose_estimation,
-            Install_Mediapipe,Install_Joblib,MySettings,#Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,
+            Install_Mediapipe,Install_Joblib,MySettings,Install_cv2,#Install_PT_Panel,Convert_axis,Reset_location,Reset_rotation,Foot_high,
             Compensate_Rotation,Smooth_Bone, Reload_sk_easymocap, Import_SMPL_easymocap, 
             Path_SMPL_FBX_File,Audio2face_Import,Audio2face_Export, 
             Audio2face_Import_to_NLA, Audio2face_delete_action_shapekey_nla, 

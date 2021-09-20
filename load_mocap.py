@@ -2822,6 +2822,31 @@ class Mediapipe_Pose_estimation(Operator, ImportHelper):
 
         return{'FINISHED'}
 
+class Install_cv2(bpy.types.Operator):
+    bl_idname = "install.cv2_package"
+    bl_label = "Install python OpenCV Package"
+    bl_description = "Install python OpenCV Package"
+
+    def execute(self,context):
+
+        import subprocess
+        import sys
+        import os
+        
+        # path to python.exe
+        python_exe = os.path.join(sys.prefix, 'bin', 'python.exe')
+        
+        # upgrade pip
+        subprocess.call([python_exe, "-m", "ensurepip"])
+        subprocess.call([python_exe, "-m", "pip", "install", "--upgrade", "pip"])
+        
+        # install required packages
+        subprocess.call([python_exe, "-m", "pip", "install", "opencv_python"])
+
+        return{'FINISHED'}
+
+
+
 class Install_Mediapipe(bpy.types.Operator):
     bl_idname = "install.mediapipe_package"
     bl_label = "Install python Mediapipe Package"

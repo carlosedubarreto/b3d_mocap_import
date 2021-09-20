@@ -12,11 +12,11 @@ from bpy.props import StringProperty,PointerProperty, IntProperty,FloatProperty
 
 import math
 from mathutils import Quaternion,Vector
-import cv2
-import mediapipe as mp
 import sys
 import os
 import glob
+
+
 
 def middle_point(p1,p2,p_middle):
     bpy.ops.object.select_all(action='DESELECT')
@@ -33,6 +33,8 @@ def middle_point(p1,p2,p_middle):
 
 
 def get_landmarks(point_name, frame_list):
+    import cv2
+    import mediapipe as mp
     mp_drawing = mp.solutions.drawing_utils
     mp_pose = mp.solutions.pose
 
@@ -86,6 +88,7 @@ def get_landmarks(point_name, frame_list):
 
 
 def get_video_frames(file_url):
+    import cv2
     vidcap = cv2.VideoCapture(file_url)
     success, image = vidcap.read()
     # array of objects with class 'numpy.ndarray'
@@ -664,6 +667,8 @@ class MP_preview(bpy.types.Operator,ImportHelper):
         options={'HIDDEN'},
         maxlen=255,  # Max internal buffer length, longer would be clamped.
     )
+
+    
 
 
     def execute(self, context):
